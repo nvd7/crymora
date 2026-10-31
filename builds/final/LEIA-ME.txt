@@ -2,9 +2,9 @@ Crymora 0.1.0 — instalador final
 ================================
 
 Arquivo : Crymora_0.1.0_x64-setup.exe
-Tamanho : 3.394.469 bytes (3,24 MiB)
-SHA-256 : 06B719134FA34C744551ADB1E679A18250139723DFE7E759C3BCD53CD2299925
-Gerado  : 29/10/2026 21:01
+Tamanho : 3.400.187 bytes (3,24 MiB)
+SHA-256 : 2EDDA9C879F38DD69B3CFAE09A6F4045689623CAB6EB3A6DA7A0BFFD12B68128
+Gerado  : 31/10/2026 11:39
 
 Instalação
 ----------
