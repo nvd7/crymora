@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Crymora — companheiro local de Valorant para Windows</title>
+  <meta name="description" content="Crymora é um companheiro local de Valorant para Windows: pré-jogo com os dois times, amigos, tracker e ajustes. Somente leitura, sem injeção ou overlay.">
+  <meta name="keywords" content="Crymora, Valorant, companheiro, tracker, Riot ID, pré-jogo, Windows, Rust, Tauri, open source, somente leitura">
+  <meta name="author" content="nvd7">
+  <meta name="theme-color" content="#08080d">
+  <link rel="canonical" href="https://nvd7.github.io/crymora/">
+  <link rel="icon" href="assets/logo.png" type="image/png">
+  <link rel="apple-touch-icon" href="assets/logo.png">
+  <link rel="stylesheet" href="site.css">
+
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="pt_BR">
+  <meta property="og:site_name" content="Crymora">
+  <meta property="og:title" content="Crymora — companheiro local de Valorant">
+  <meta property="og:description" content="Pré-jogo com os dois times, amigos, tracker e ajustes em uma interface rápida, limpa e somente leitura.">
+  <meta property="og:url" content="https://nvd7.github.io/crymora/">
+  <meta property="og:image" content="https://nvd7.github.io/crymora/assets/home.png">
+  <meta property="og:image:alt" content="Tela inicial do Crymora">
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Crymora — companheiro local de Valorant">
+  <meta name="twitter:description" content="Pré-jogo com os dois times, amigos, tracker e ajustes. Somente leitura, sem telemetria.">
+  <meta name="twitter:image" content="https://nvd7.github.io/crymora/assets/home.png">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Crymora",
+    "operatingSystem": "Windows 10, Windows 11",
+    "applicationCategory": "UtilitiesApplication",
+    "description": "Companheiro local de Valorant para Windows com pré-jogo dos dois times, amigos, tracker e ajustes. Somente leitura, sem telemetria.",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "BRL" },
+    "downloadUrl": "https://github.com/nvd7/crymora/releases/latest",
+    "codeRepository": "https://github.com/nvd7/crymora",
+    "license": "https://github.com/nvd7/crymora/blob/main/LICENSE",
+    "author": { "@type": "Person", "name": "nvd7", "url": "https://github.com/nvd7" }
+  }
+  </script>
+</head>
+<body>
+  <a class="skip" href="#conteudo">Pular para o conteúdo</a>
+
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <a class="brand" href="./" aria-label="Crymora — início">
+        <img src="assets/logo.png" alt="" width="40" height="40">
+        <span>Crymora</span>
+      </a>
+      <nav class="nav" aria-label="Navegação principal">
+        <a href="#recursos">Recursos</a>
+        <a href="#seguranca">Segurança</a>
+        <a href="#instalar">Instalar</a>
+        <a href="#faq">FAQ</a>
+        <a href="https://github.com/nvd7/crymora">GitHub</a>
+      </nav>
+      <a class="btn btn-primary btn-sm" href="https://github.com/nvd7/crymora/releases/latest">Baixar</a>
+    </div>
+  </header>
+
+  <main id="conteudo">
+    <section class="hero">
+      <div class="wrap hero-grid">
+        <div class="hero-copy">
+          <p class="eyebrow"><span class="pulse"></span> Windows 10/11 · código aberto</p>
+          <h1>Seu companheiro local de <span class="grad">Valorant</span>.</h1>
+          <p class="lead">Pré-jogo com os dois times, amigos, tracker e ajustes em uma interface rápida, limpa e somente leitura.</p>
+          <div class="actions">
+            <a class="btn btn-primary btn-lg" href="https://github.com/nvd7/crymora/releases/latest">Baixar para Windows</a>
+            <a class="btn btn-ghost btn-lg" href="https://github.com/nvd7/crymora">Ver no GitHub</a>
+          </div>
+          <p class="micro">Instalador por usuário · sem admin · 3,26 MiB</p>
+          <ul class="trust">
+            <li>Somente leitura</li>
+            <li>Sem telemetria</li>
+            <li>Rust + Tauri</li>
+          </ul>
+        </div>
+        <div class="hero-shot">
+          <div class="shot-frame">
+            <img src="assets/home.png" alt="Tela inicial do Crymora com status do Riot Client, amigos online e atalhos" width="1176" height="779" loading="eager">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="strip" aria-label="Resumo técnico">
+      <div class="wrap strip-grid">
+        <div><strong>10/10</strong><span>roster no pré-jogo</span></div>
+        <div><strong>~1 s</strong><span>atualização durante a partida</span></div>
+        <div><strong>0</strong><span>telemetria ou backend próprio</span></div>
+        <div><strong>MIT</strong><span>código aberto para auditoria</span></div>
+      </div>
+    </section>
+
+    <section id="recursos" class="section">
+      <div class="wrap">
+        <p class="eyebrow">Recursos</p>
+        <h2>Tudo o que importa, em um só lugar.</h2>
+        <p class="section-lead">Informação na hora certa, sem abrir várias abas e sem sair do jogo.</p>
+        <div class="cards">
+          <article class="card">
+            <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+            <h3>Pré-jogo 5v5</h3>
+            <p>Os dois times visíveis antes da partida, com nick, rank e nível — inclusive os inimigos.</p>
+          </article>
+          <article class="card">
+            <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span>
+            <h3>Partida ao vivo</h3>
+            <p>Mapa, modo, placar e roster completo enquanto a partida acontece.</p>
+          </article>
+          <article class="card">
+            <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
+            <h3>Tracker por Riot ID</h3>
+            <p>Rank atual, RR, pico de carreira, ato anterior, leaderboard e últimos resultados.</p>
+          </article>
+          <article class="card">
+            <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg></span>
+            <h3>Amigos</h3>
+            <p>Presença do cliente, online primeiro, status, rank e nível quando disponíveis.</p>
+          </article>
+          <article class="card">
+            <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg></span>
+            <h3>Ajustes</h3>
+            <p>Tema, cor de destaque, densidade, idioma, inicialização com o Windows e Discord.</p>
+          </article>
+          <article class="card">
+            <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span>
+            <h3>Alt+Tab instantâneo</h3>
+            <p>Ao voltar o foco para o app, a atualização acontece na hora — sem esperar o próximo ciclo.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="seguranca" class="section section-alt">
+      <div class="wrap security-grid">
+        <div>
+          <p class="eyebrow">Segurança</p>
+          <h2>Feito para ler. Nunca para alterar.</h2>
+          <p class="section-lead">O Crymora conversa apenas com o Riot Client da sua máquina e com serviços públicos da Riot. Não existe backend próprio, telemetria ou conta na nuvem.</p>
+          <a class="text-link" href="https://github.com/nvd7/crymora/blob/main/SECURITY.md">Ler a política de segurança →</a>
+        </div>
+        <ul class="checklist">
+          <li>Sem leitura de memória do jogo</li>
+          <li>Sem injeção de DLL, hooks ou threads remotas</li>
+          <li>Sem overlay dentro da partida</li>
+          <li>Sem automação de input, macros ou bots</li>
+          <li>Sem alteração de arquivos do Valorant</li>
+          <li>Sem telemetria, analytics ou publicidade</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="wrap">
+        <div class="warning" role="note">
+          <span class="warning-icon" aria-hidden="true">!</span>
+          <div>
+            <h3>Aviso importante da Riot Games</h3>
+            <p>O Crymora não é afiliado, endossado ou aprovado pela Riot Games. Esta versão mostra os inimigos no pré-jogo, comportamento que a Riot classifica como <strong>scouting</strong> e considera uso <strong>não aprovado</strong>. Use por sua conta e risco e não compartilhe com quem não aceitou esse risco.</p>
+            <p class="warning-small">O app não é um cheat: não lê memória, não injeta código, não cria overlay, não automatiza input e não altera arquivos do jogo.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="instalar" class="section section-alt">
+      <div class="wrap">
+        <p class="eyebrow">Instalação</p>
+        <h2>Pronto em menos de um minuto.</h2>
+        <div class="steps">
+          <article>
+            <span>1</span>
+            <h3>Baixe o instalador</h3>
+            <p>Pegue a versão mais recente na página de releases do GitHub.</p>
+          </article>
+          <article>
+            <span>2</span>
+            <h3>Confira o SHA-256</h3>
+            <p>Compare o hash do arquivo com o publicado junto da release.</p>
+          </article>
+          <article>
+            <span>3</span>
+            <h3>Execute e abra</h3>
+            <p>Instala só para o seu usuário, em <code>%LOCALAPPDATA%\Crymora</code>, sem pedir admin.</p>
+          </article>
+        </div>
+
+        <div class="checksum">
+          <div>
+            <h3>SHA-256 do instalador 0.1.0</h3>
+            <p>Confira com <code>Get-FileHash .\Crymora_0.1.0_x64-setup.exe -Algorithm SHA256</code>.</p>
+          </div>
+          <div class="code-row">
+            <code id="hash">6311324e8d4bec87ec254bf776f919d8ed1d37a9ca09a55ca0fab4eecef85e83</code>
+            <button class="btn btn-ghost btn-sm" type="button" data-copy="6311324e8d4bec87ec254bf776f919d8ed1d37a9ca09a55ca0fab4eecef85e83">Copiar</button>
+          </div>
+        </div>
+
+        <p class="note">O executável não é assinado digitalmente. Se o SmartScreen avisar, clique em <strong>Mais informações → Executar assim mesmo</strong>. O código-fonte completo está no GitHub para auditoria.</p>
+      </div>
+    </section>
+
+    <section id="faq" class="section">
+      <div class="wrap narrow">
+        <p class="eyebrow">FAQ</p>
+        <h2>Perguntas frequentes</h2>
+
+        <details>
+          <summary>O Crymora é um cheat?</summary>
+          <p>Não. Ele não lê memória do jogo, não injeta código, não cria overlay, não automatiza input e não altera arquivos do Valorant. É um leitor passivo de APIs locais e logs.</p>
+        </details>
+        <details>
+          <summary>Por que o Windows mostra um aviso ao instalar?</summary>
+          <p>Porque o instalador ainda não tem assinatura digital. O código-fonte é público e o SHA-256 do binário é publicado junto da release.</p>
+        </details>
+        <details>
+          <summary>Preciso deixar o Valorant aberto?</summary>
+          <p>Sim. O Crymora usa a sessão local do Riot Client. Sem o cliente aberto, ele mostra o estado offline e não consegue listar partidas ou amigos.</p>
+        </details>
+        <details>
+          <summary>Meus dados são enviados para algum servidor?</summary>
+          <p>Não. O Crymora não tem backend próprio nem telemetria. As únicas conexões são com o Riot Client local, endpoints do próprio Riot e o CDN público <code>valorant-api.com</code> para ícones.</p>
+        </details>
+        <details>
+          <summary>Por que os inimigos aparecem no pré-jogo?</summary>
+          <p>Porque o app consulta o endpoint local de <code>loadouts</code>, que devolve o <code>Subject</code> dos 10 jogadores, e usa o <code>ShooterGame.log</code> como reserva. Isso é o que a Riot chama de “scouting” e <strong>não é um uso aprovado</strong>.</p>
+        </details>
+        <details>
+          <summary>O pico de carreira bate com o tracker.gg?</summary>
+          <p>Sim. O pico é calculado a partir do histórico de atos retornado pelo PD e validado contra o tracker.gg para as contas testadas.</p>
+        </details>
+      </div>
+    </section>
+
+    <section class="cta">
+      <div class="wrap cta-inner">
+        <div>
+          <h2>Pronto para jogar com mais contexto?</h2>
+          <p>Baixe o Crymora e deixe o pré-jogo mais claro.</p>
+        </div>
+        <a class="btn btn-primary btn-lg" href="https://github.com/nvd7/crymora/releases/latest">Baixar para Windows</a>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap footer-grid">
+      <div>
+        <a class="brand" href="./" aria-label="Crymora — início">
+          <img src="assets/logo.png" alt="" width="36" height="36">
+          <span>Crymora</span>
+        </a>
+        <p class="footer-note">Companheiro local de Valorant para Windows. Somente leitura, sem telemetria.</p>
+      </div>
+      <div class="footer-links">
+        <a href="https://github.com/nvd7/crymora">GitHub</a>
+        <a href="https://github.com/nvd7/crymora/releases/latest">Releases</a>
+        <a href="https://github.com/nvd7/crymora/blob/main/README.en.md">English</a>
+        <a href="https://github.com/nvd7/crymora/blob/main/LICENSE">MIT</a>
+      </div>
+    </div>
+    <div class="wrap footer-bottom">
+      <span>© <span id="year">2026</span> nvd7 · made by nvd7</span>
+      <span>Crymora não é afiliado, endossado ou patrocinado pela Riot Games. VALORANT e Riot Games são marcas registradas da Riot Games, Inc.</span>
+    </div>
+  </footer>
+
+  <script src="site.js" defer></script>
+</body>
+</html>

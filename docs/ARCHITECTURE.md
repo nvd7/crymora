@@ -39,7 +39,7 @@ flowchart LR
 | `riot/lockfile.rs` | Descoberta do Riot Client e leitura do lockfile local. |
 | `riot/region.rs` | Detecção de região, shard e host a partir do lockfile/ambiente. |
 | `riot/remote.rs` | Cliente HTTP para glz/pd, nomes, MMR e normalização de ranks. |
-| `riot/state.rs` | Poller, cache, montagem do roster, presenças e fallback dos inimigos. |
+| `riot/state.rs` | Poller, cache, montagem do roster, presenças, loadouts e fallback dos inimigos. |
 
 ### Comandos IPC
 
@@ -77,14 +77,15 @@ Cada tick coleta presenças, fase da partida, roster e dados de elo. As consulta
 
 ### 3. Pré-jogo
 
-O endpoint HTTP do pré-jogo entrega apenas o time aliado: `Teams` contém um único time e `EnemyTeam` vem nulo. O backend então:
+O payload de `Pregame_GetMatch` entrega apenas o time aliado: `Teams` contém um único time e `EnemyTeam` vem nulo. Para montar os 10, o backend:
 
 1. Lê `EnemyTeamSize` (normalmente 5).
-2. Lê os últimos 2 MB do `ShooterGame.log`.
-3. Ancora na última linha `Pregame_GetMatch` da partida atual.
-4. Coleta os puuids registrados em `Subject had empty display name. <uuid>` depois dessa âncora.
-5. Remove o próprio jogador e os aliados, limita ao tamanho do time inimigo.
-6. Enriquece cada puuid com nick e rank via PD.
+2. Consulta `GET /pregame/v1/matches/{id}/loadouts`, que devolve o `Subject` dos 10 jogadores (o cliente usa o endpoint para pré-carregar skins).
+3. Coleta os `Subject` que não são o jogador local nem aliados, remove duplicados e limita ao tamanho do time inimigo.
+4. Se ainda faltar alguém, usa o `ShooterGame.log` como reserva: lê os últimos 2 MB, ancora na **primeira** linha `Pregame_GetMatch` da partida atual, para na próxima partida e coleta os puuids de `Subject had empty display name. <uuid>`.
+5. Enriquece cada puuid com nick e rank via PD.
+
+A âncora na primeira consulta é importante: o app consulta o `Pregame_GetMatch` a cada tick e os inimigos só aparecem no log no fim do agent-select. Ancorar na última consulta faria o roster perder os inimigos no tick seguinte.
 
 ```mermaid
 sequenceDiagram
@@ -96,8 +97,12 @@ sequenceDiagram
     UI->>Poller: refresh_now (foco)
     Poller->>GLZ: GET pregame match
     GLZ-->>Poller: aliados + EnemyTeamSize
-    Poller->>Log: tail 2 MB
-    Log-->>Poller: puuids inimigos
+    Poller->>GLZ: GET pregame loadouts
+    GLZ-->>Poller: Subject dos 10 jogadores
+    opt inimigos ainda faltando
+        Poller->>Log: tail 2 MB (reserva)
+        Log-->>Poller: puuids inimigos
+    end
     Poller->>PD: nomes + MMR (paralelo)
     PD-->>Poller: nick, rank, pico
     Poller-->>UI: roster 10/10
@@ -156,7 +161,8 @@ Os testes unitários ficam em `src-tauri/src` e cobrem:
 - parsing de região;
 - parsing de MMR e pico de carreira;
 - fallback de puuid via `PlayerIdentity.Subject`;
-- parsing dos puuids inimigos no log;
+- parsing dos `Subject` dos loadouts no pré-jogo;
+- parsing dos puuids inimigos no log e âncora na primeira consulta da partida;
 - `ranks_ready` e timeout de `pregame_hold`;
 - allowlist de links externos.
 

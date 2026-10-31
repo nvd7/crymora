@@ -69,7 +69,7 @@ test: cobre fallback de puuid no pré-jogo
 
 ## Dependências
 
-As dependências são revisadas manualmente antes de qualquer atualização, para manter o código do repositório em sincronia com o binário publicado. Alertas de segurança e correções automáticas de vulnerabilidades continuam habilitados no GitHub.
+As dependências são propostas pelo Dependabot (Cargo e GitHub Actions) e revisadas manualmente antes do merge. Atualizações que mudam o binário exigem um novo instalador e a atualização do checksum — veja [docs/RELEASING.md](docs/RELEASING.md). Alertas de segurança e correções automáticas de vulnerabilidades continuam habilitados no GitHub.
 
 ## Checklist do PR
 
@@ -79,6 +79,10 @@ As dependências são revisadas manualmente antes de qualquer atualização, par
 - [ ] Textos novos têm versão em português e inglês.
 - [ ] Nenhum segredo, token, Riot ID ou log pessoal foi incluído.
 - [ ] A documentação foi atualizada, se necessário.
+
+## Publicar uma release
+
+O processo completo — versão, testes, build, checksum, tag e assets — está em [docs/RELEASING.md](docs/RELEASING.md).
 
 ## Dúvidas
 

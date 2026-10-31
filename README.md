@@ -7,6 +7,7 @@
 **Seu companheiro local de Valorant.**  
 Partida, amigos, tracker e ajustes em uma interface rápida, limpa e somente leitura.
 
+[![Baixar para Windows](https://img.shields.io/badge/baixar-Windows%2010%2F11-2ea44f?style=flat-square&logo=windows&logoColor=white)](https://github.com/nvd7/crymora/releases/latest)
 [![Última release](https://img.shields.io/github/v/release/nvd7/crymora?style=flat-square&label=release)](https://github.com/nvd7/crymora/releases/latest)
 [![CI](https://github.com/nvd7/crymora/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/nvd7/crymora/actions/workflows/ci.yml)
 [![Plataforma](https://img.shields.io/badge/platform-Windows%2010%2F11-0078D4?style=flat-square&logo=windows&logoColor=white)](#instalação)
@@ -14,7 +15,7 @@ Partida, amigos, tracker e ajustes em uma interface rápida, limpa e somente lei
 [![Tauri](https://img.shields.io/badge/Tauri-2-24C8DB?style=flat-square&logo=tauri&logoColor=white)](https://tauri.app/)
 [![Licença](https://img.shields.io/github/license/nvd7/crymora?style=flat-square)](LICENSE)
 
-[Instalar](#instalação) · [Recursos](#recursos) · [Como funciona](#como-funciona) · [Arquitetura](docs/ARCHITECTURE.md) · [Compilar](#compilar-do-código-fonte) · [FAQ](#perguntas-frequentes)
+[Site](https://nvd7.github.io/crymora/) · [Instalar](#instalação) · [Recursos](#recursos) · [Segurança](#segurança-e-privacidade) · [Como funciona](#como-funciona) · [Arquitetura](docs/ARCHITECTURE.md) · [Compilar](#compilar-do-código-fonte) · [FAQ](#perguntas-frequentes) · [English](README.en.md)
 
 </div>
 
@@ -26,7 +27,7 @@ O Crymora é um aplicativo desktop para Windows que reúne, em um só lugar, o q
 
 Ele conversa **apenas** com o Riot Client instalado na sua máquina e com serviços públicos da Riot. Não existe backend próprio, telemetria, conta na nuvem ou coleta de dados. Tudo fica no seu computador.
 
-> **Status:** beta público (`v0.1.0`). A interface e o backend são estáveis para uso diário, mas o projeto ainda está em evolução.
+> **Status:** primeira release pública (`v0.1.0`). A interface e o backend são estáveis para uso diário, e o projeto continua em evolução.
 
 > [!WARNING]
 > **Aviso da Riot Games — leia antes de usar.**  
@@ -108,7 +109,7 @@ Detalhes completos em [docs/PRIVACY.md](docs/PRIVACY.md) e [SECURITY.md](SECURIT
 
 1. Baixe o instalador mais recente em [**Releases**](https://github.com/nvd7/crymora/releases/latest):
 
-   [**Baixar o instalador**](https://github.com/nvd7/crymora/releases/latest/download/Crymora_0.1.0_x64-setup.exe) · 3,24 MiB
+   [**Baixar o instalador**](https://github.com/nvd7/crymora/releases/latest) · 3,26 MiB
 
    ```text
    Crymora_0.1.0_x64-setup.exe
@@ -156,7 +157,7 @@ Para desinstalar: **Configurações → Aplicativos → Crymora → Desinstalar*
 
 1. O backend encontra o Riot Client pelo lockfile local e usa o token da sessão para consultar as APIs do próprio Riot.
 2. Um poller atualiza presenças, partida e elos em intervalos curtos; ao recuperar o foco, a UI pede uma atualização imediata.
-3. No pré-jogo, o HTTP do Riot entrega apenas o time aliado. O Crymora completa os inimigos lendo os puuids que o cliente do jogo registra no `ShooterGame.log` e enriquece cada um com nick e rank via PD.
+3. No pré-jogo, o payload do Riot entrega apenas o time aliado. O Crymora consulta o endpoint local de `loadouts`, que devolve o `Subject` dos 10 jogadores, e usa o `ShooterGame.log` como reserva. Cada puuid é enriquecido com nick e rank via PD.
 4. A UI recebe um roster normalizado e renderiza os dois times, sem acessar nada diretamente.
 
 Mais detalhes em [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
@@ -222,16 +223,17 @@ crymora/
 │  ├─ icons/
 │  ├─ tauri.conf.json
 │  └─ Cargo.toml
-├─ docs/                  arquitetura, privacidade e assets
+├─ docs/                  arquitetura, privacidade, site e assets
 ├─ builds/final/          instalador e checksums publicados
 ├─ design/                identidade visual e mockups
 ├─ tools/                 scripts auxiliares (ícone e sondagem)
-├─ .github/               templates de issue/PR e CI
+├─ .github/               templates de issue/PR, Dependabot e CI
 ├─ CHANGELOG.md
 ├─ CONTRIBUTING.md
 ├─ LICENSE
-├─ SECURITY.md
-└─ README.md
+├─ README.en.md
+├─ README.md
+└─ SECURITY.md
 ```
 
 ## Fontes de dados
@@ -240,7 +242,8 @@ crymora/
 | --- | --- | --- |
 | Lockfile do Riot Client | Porta e token da sessão local | Leitura local |
 | APIs locais `glz` / `pd` | Partida, roster, elos, nomes e presenças | Leitura autenticada com o token local |
-| `ShooterGame.log` | Fallback dos puuids inimigos no pré-jogo | Leitura local |
+| API local `pregame/.../loadouts` | `Subject` dos 10 jogadores no pré-jogo | Leitura autenticada com o token local |
+| `ShooterGame.log` | Reserva dos puuids inimigos no pré-jogo | Leitura local |
 | `valorant-api.com` | Ícones de ranks, agentes e mapas | HTTPS público |
 | `tracker.gg` / `twitch.tv` | Perfis e transmissões externas | Apenas links abertos no navegador |
 
@@ -250,7 +253,7 @@ crymora/
 - [x] Pré-jogo com os dois times, ranks e níveis.
 - [x] Atualização imediata ao recuperar o foco.
 - [x] Troca de conta sem reiniciar.
-- [x] Fallback dos inimigos pelo log do jogo.
+- [x] Inimigos do pré-jogo via `loadouts`, com o log como reserva.
 - [ ] Histórico das últimas partidas no Tracker.
 - [ ] Mais idiomas além de português e inglês.
 - [ ] Assinatura de código do instalador.
@@ -289,7 +292,7 @@ Não. O Crymora não tem backend próprio nem telemetria. As únicas conexões s
 <details>
 <summary><strong>Por que os inimigos aparecem no pré-jogo?</strong></summary>
 
-Porque o app completa o roster com os puuids registrados pelo cliente do jogo no `ShooterGame.log`. Isso é o que a Riot chama de “scouting” e **não é um uso aprovado**. Leia o aviso no topo deste README e use por sua conta e risco.
+Porque o app consulta o endpoint local de `loadouts` do pré-jogo, que devolve o `Subject` dos 10 jogadores, e usa o `ShooterGame.log` como reserva. Isso é o que a Riot chama de “scouting” e **não é um uso aprovado**. Leia o aviso no topo deste README e use por sua conta e risco.
 
 </details>
 
@@ -306,6 +309,16 @@ Não. Quando o nível ou o card não é conhecido, o app usa um avatar de inicia
 Sim. O pico é calculado a partir do histórico de atos retornado pelo PD e validado contra o tracker.gg para as contas testadas.
 
 </details>
+
+## Comunidade
+
+- [GitHub Discussions](https://github.com/nvd7/crymora/discussions) — dúvidas, ideias, feedback e configurações.
+- [Issues](https://github.com/nvd7/crymora/issues) — bugs reproduzíveis e sugestões objetivas.
+- [Security](SECURITY.md) — vulnerabilidades, sempre em canal privado.
+
+## Apoie o projeto
+
+Se o Crymora te ajudou, deixe uma **estrela** no repositório. Isso ajuda o projeto a aparecer para outros jogadores e mantém o desenvolvimento ativo.
 
 ## Contribuindo
 
@@ -336,4 +349,4 @@ VALORANT e Riot Games são marcas registradas da Riot Games, Inc.
 
 ## English
 
-Crymora is a local, read-only Valorant companion for Windows. It shows both teams in pre-game, friends, a Riot ID tracker and appearance settings in a fast desktop UI built with Rust and Tauri 2. It never reads game memory, injects code, creates overlays or automates input. No telemetry, no backend, no account. See the Riot Games policy warning above before using the pre-game enemy roster. Licensed under MIT.
+Crymora is a local, read-only Valorant companion for Windows. Read the full [English README](README.en.md) for features, installation, security and FAQ.

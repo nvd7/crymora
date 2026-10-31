@@ -19,7 +19,8 @@ O Crymora foi feito para funcionar inteiramente na sua máquina. Esta página de
 | Presenças e amigos | Montar a lista de amigos | API local do Riot |
 | Partida e roster | Mostrar pré-jogo e jogo ao vivo | API local do Riot |
 | Elos e MMR | Exibir rank, RR, pico e estatísticas | API do Riot (PD) |
-| `ShooterGame.log` | Completar os puuids inimigos no pré-jogo | Pasta de logs do Valorant |
+| `loadouts` do pré-jogo | Obter o `Subject` dos 10 jogadores | API local do Riot |
+| `ShooterGame.log` | Reserva dos puuids inimigos no pré-jogo | Pasta de logs do Valorant |
 | Configurações | Guardar preferências da UI | `%APPDATA%\crymora\settings.json` |
 | Log de diagnóstico | Ajudar a diagnosticar problemas | `%APPDATA%\crymora\debug.log` |
 

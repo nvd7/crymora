@@ -5,14 +5,20 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   test:
     name: Testes (Windows)
     runs-on: windows-latest
+    timeout-minutes: 20
     defaults:
       run:
         working-directory: src-tauri
@@ -29,4 +35,23 @@ jobs:
           workspaces: src-tauri -> target
 
       - name: Rodar testes unitários
-        run: cargo test --lib
+        run: cargo test --lib --locked
+
+  checksum:
+    name: Checksum do instalador
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Conferir SHA-256 publicado
+        shell: pwsh
+        run: |
+          $sums = Get-Content builds/final/SHA256SUMS.txt -Raw
+          $expected = ($sums -split '\s+')[0].ToLower()
+          $actual = (Get-FileHash builds/final/Crymora_0.1.0_x64-setup.exe -Algorithm SHA256).Hash.ToLower()
+          if ($actual -ne $expected) {
+            throw "SHA-256 divergente: esperado $expected, obtido $actual"
+          }
+          Write-Host "SHA-256 confere: $actual"

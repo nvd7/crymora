@@ -22,8 +22,9 @@ Segurança
 ---------
 - Somente leitura: APIs locais do Riot Client e logs. Sem memória do jogo,
   injeção, hooks, overlay, automação de input ou alteração de arquivos do jogo.
-- Pré-jogo e partida: o roster mostra os dois times (rank/level), inclusive
-  os inimigos antes da partida. Veja o AVISO na seção de política abaixo.
+- Pré-jogo e partida: o roster mostra os dois times (nick, rank e nível),
+  inclusive os inimigos antes da partida. Os inimigos vêm do endpoint local
+  de loadouts; o log do jogo fica como reserva. Veja o AVISO abaixo.
 - Links externos limitados a tracker.gg e twitch.tv (https), validados no Rust.
 - CSP restritiva, sem permissão de opener para a página, logs com rotação.
 
@@ -62,4 +63,10 @@ Observação
 ----------
 A troca de conta agora é detectada pelo puuid mesmo quando a sessão anterior
 cai para "offline" no meio da troca: o nick próprio e o cache de amigos são
-refeitos. Validado com a conta "n v#d 7" após a troca real.
+refeitos. Validado com uma troca de conta real.
+
+Links
+-----
+Site      : https://nvd7.github.io/crymora/
+Repositório: https://github.com/nvd7/crymora
+
