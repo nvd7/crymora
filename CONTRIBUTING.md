@@ -67,6 +67,10 @@ refactor: simplifica o poller de presenças
 test: cobre fallback de puuid no pré-jogo
 ```
 
+## Dependências
+
+As dependências são revisadas manualmente antes de qualquer atualização, para manter o código do repositório em sincronia com o binário publicado. Alertas de segurança e correções automáticas de vulnerabilidades continuam habilitados no GitHub.
+
 ## Checklist do PR
 
 - [ ] A mudança preserva o modelo somente leitura.
