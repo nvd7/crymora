@@ -60,7 +60,7 @@ Ele conversa **apenas** com o Riot Client instalado na sua máquina e com servi�
 
 - Busca local por **Riot ID** (`Nome#TAG`), com sugestões de amigos e jogadores vistos em partidas recentes.
 - Perfil completo: rank atual e RR, pico de carreira, pico do ato, vitórias/derrotas do ato, ato anterior, leaderboard, partidas na carreira e últimos resultados.
-- O pico de carreira é calculado a partir do histórico de atos e conferido contra o tracker.gg.
+- O pico de carreira é calculado a partir do histórico de atos e foi conferido contra o tracker.gg.
 - Fallback externo para abrir qualquer Riot ID no tracker.gg.
 
 ### Ajustes
@@ -107,6 +107,8 @@ Detalhes completos em [docs/PRIVACY.md](docs/PRIVACY.md) e [SECURITY.md](SECURIT
 ### Passos
 
 1. Baixe o instalador mais recente em [**Releases**](https://github.com/nvd7/crymora/releases/latest):
+
+   [**Baixar o instalador**](https://github.com/nvd7/crymora/releases/latest/download/Crymora_0.1.0_x64-setup.exe) · 3,24 MiB
 
    ```text
    Crymora_0.1.0_x64-setup.exe
