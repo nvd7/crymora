@@ -1,0 +1,14 @@
+# Rust / Tauri
+src-tauri/target/
+
+# Dependências web (se um dia houver)
+node_modules/
+dist/
+
+# Logs e variáveis locais
+*.log
+.env
+.env.*
+
+# Builds de teste (o instalador final fica em builds/final)
+builds/teste-funcional/

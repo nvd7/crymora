@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<title>Crymora — Manga</title>
+<style>
+@font-face {
+  font-family: "Geist";
+  src: url("../../ui/assets/geist-latin-wght-normal-BgDaEnEv.woff2") format("woff2");
+  font-weight: 100 900;
+}
+@font-face {
+  font-family: "Geist Mono";
+  src: url("../../ui/assets/geist-mono-latin-wght-normal-B_7UjwxQ.woff2") format("woff2");
+  font-weight: 100 900;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --ink: #050505;
+  --panel: #0a0a0a;
+  --paper: #f2f2ee;
+  --mut: #85857f;
+  --line: #262624;
+  --line-hi: #4a4a45;
+}
+html, body { width: 1160px; height: 740px; overflow: hidden; }
+body {
+  background: var(--ink);
+  color: var(--paper);
+  font-family: "Geist", "Segoe UI", sans-serif;
+  user-select: none;
+}
+body::before {
+  content: "";
+  position: fixed; inset: 0;
+  background-image: radial-gradient(rgba(255,255,255,.12) .65px, transparent .8px);
+  background-size: 5px 5px;
+  opacity: .14;
+  pointer-events: none;
+  z-index: 0;
+}
+body::after {
+  content: "";
+  position: fixed; inset: 0;
+  background: linear-gradient(180deg, transparent 55%, rgba(0,0,0,.5));
+  pointer-events: none;
+  z-index: 0;
+}
+.app {
+  position: relative; z-index: 1;
+  display: grid; grid-template-columns: 76px 1fr;
+  width: 1160px; height: 740px;
+}
+/* ---------- rail ---------- */
+.rail {
+  display: flex; flex-direction: column; align-items: center;
+  border-right: 1px solid var(--line);
+  padding: 20px 0 16px;
+  background: rgba(5,5,5,.7);
+}
+.logo {
+  width: 34px; height: 34px;
+  display: grid; place-items: center;
+  background: var(--paper); color: var(--ink);
+  font-weight: 900; font-size: 19px; letter-spacing: -.08em;
+  clip-path: polygon(0 0, 100% 0, 100% 72%, 72% 100%, 0 100%);
+}
+.nav { display: flex; flex-direction: column; gap: 7px; margin-top: 44px; width: 100%; padding: 0 10px; }
+.nav a {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+  height: 54px; color: var(--mut); text-decoration: none;
+  border: 1px solid transparent;
+  transition: none;
+}
+.nav a .jp { font-size: 13px; font-weight: 600; letter-spacing: .08em; }
+.nav a .en { font-family: "Geist Mono", monospace; font-size: 7px; letter-spacing: .22em; }
+.nav a.on { background: var(--paper); color: var(--ink); }
+.nav a:not(.on):hover { border-color: var(--line-hi); color: var(--paper); }
+.rail-foot { margin-top: auto; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.dot { width: 7px; height: 7px; border-radius: 50%; background: var(--paper); }
+.dot.off { background: var(--line-hi); }
+.rail-foot span { font-family: "Geist Mono", monospace; font-size: 7px; letter-spacing: .18em; color: var(--mut); writing-mode: vertical-rl; }
+/* ---------- main ---------- */
+main { padding: 22px 30px 18px; display: flex; flex-direction: column; min-width: 0; }
+.topline {
+  display: flex; justify-content: space-between; align-items: center;
+  font-family: "Geist Mono", monospace;
+  font-size: 8px; letter-spacing: .26em; color: var(--mut);
+  text-transform: uppercase;
+  padding-bottom: 12px; border-bottom: 1px solid var(--line);
+}
+.topline b { color: var(--paper); font-weight: 500; }
+/* hero */
+.hero {
+  position: relative; overflow: hidden;
+  margin-top: 16px;
+  border: 1px solid var(--line-hi);
+  background: var(--panel);
+  padding: 18px 22px 16px;
+  display: grid; grid-template-columns: 1fr auto; align-items: center;
+  min-height: 136px;
+}
+.hero::before, .hero::after {
+  content: ""; position: absolute; width: 13px; height: 13px; border-color: var(--paper); border-style: solid;
+}
+.hero::before { left: -1px; top: -1px; border-width: 1px 0 0 1px; }
+.hero::after { right: -1px; bottom: -1px; border-width: 0 1px 1px 0; }
+.speed {
+  position: absolute; inset: 0 0 0 42%;
+  background: repeating-linear-gradient(107deg, transparent 0 13px, rgba(255,255,255,.055) 13px 14px);
+  mask-image: linear-gradient(90deg, transparent, #000 45%);
+  pointer-events: none;
+}
+.watermark {
+  position: absolute; right: 190px; top: -46px;
+  font-family: "Geist Mono", monospace; font-size: 230px; font-weight: 700;
+  color: transparent; -webkit-text-stroke: 1px rgba(255,255,255,.09);
+  line-height: 1; pointer-events: none;
+}
+.kicker {
+  font-family: "Geist Mono", monospace; font-size: 8px; letter-spacing: .24em;
+  color: var(--mut); text-transform: uppercase;
+}
+h1 {
+  font-size: 66px; line-height: .88; letter-spacing: -.055em; font-weight: 800;
+  margin: 7px 0 9px;
+}
+h1 em { font-style: normal; color: transparent; -webkit-text-stroke: 1.3px var(--paper); }
+.meta {
+  display: flex; align-items: center; gap: 10px;
+  font-family: "Geist Mono", monospace; font-size: 9px; letter-spacing: .12em; color: var(--mut);
+  text-transform: uppercase;
+}
+.meta i { width: 18px; height: 1px; background: var(--line-hi); display: block; }
+.score-wrap { position: relative; z-index: 2; display: flex; align-items: flex-end; gap: 18px; padding-right: 4px; }
+.score { font-family: "Geist Mono", monospace; font-size: 58px; line-height: .9; letter-spacing: -.06em; font-weight: 600; }
+.score span { color: var(--line-hi); margin: 0 4px; }
+.live {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-family: "Geist Mono", monospace; font-size: 8px; letter-spacing: .2em;
+  border: 1px solid var(--line-hi); padding: 6px 9px;
+  align-self: flex-start;
+}
+.live b { width: 5px; height: 5px; border-radius: 50%; background: var(--paper); animation: blink 1.4s steps(1) infinite; }
+@keyframes blink { 50% { opacity: .15; } }
+/* roster */
+.roster {
+  flex: 1; min-height: 0;
+  display: grid; grid-template-columns: 1fr 1px 1fr; gap: 0 26px;
+  margin-top: 20px;
+}
+.vline { background: var(--line); margin: 2px 0 6px; }
+.team { min-width: 0; display: flex; flex-direction: column; }
+.team-head {
+  display: flex; align-items: baseline; gap: 8px;
+  padding: 0 3px 7px; border-bottom: 2px solid var(--paper);
+}
+.team-head .t { font-size: 10px; font-weight: 800; letter-spacing: .2em; }
+.team-head .jp { font-size: 10px; color: var(--mut); letter-spacing: .12em; }
+.team-head .n {
+  margin-left: auto; font-family: "Geist Mono", monospace;
+  font-size: 8px; color: var(--ink); background: var(--paper);
+  padding: 2px 5px;
+}
+.rows { display: flex; flex-direction: column; flex: 1; }
+.p {
+  display: flex; align-items: center; gap: 11px;
+  padding: 8px 3px; flex: 1;
+  border-bottom: 1px solid var(--line);
+}
+.p:last-child { border-bottom: none; }
+.badge {
+  width: 31px; height: 31px; flex: none;
+  display: grid; place-items: center;
+  border: 1px solid var(--line-hi);
+  font-family: "Geist Mono", monospace; font-size: 9px; letter-spacing: .04em;
+  color: var(--paper);
+  clip-path: polygon(0 0, 100% 0, 100% 76%, 76% 100%, 0 100%);
+}
+.p.star .badge { background: var(--paper); color: var(--ink); border-color: var(--paper); font-weight: 700; }
+.who { flex: 1; min-width: 0; }
+.nm { display: flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 650; letter-spacing: -.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.you {
+  font-family: "Geist Mono", monospace; font-size: 6.5px; letter-spacing: .14em;
+  border: 1px solid var(--line-hi); padding: 1px 4px; color: var(--mut);
+}
+.ag { font-family: "Geist Mono", monospace; font-size: 7.5px; letter-spacing: .16em; color: var(--mut); margin-top: 3px; text-transform: uppercase; }
+.rr { text-align: right; flex: none; }
+.rr b { font-family: "Geist Mono", monospace; font-size: 12px; font-weight: 500; }
+.rr span { font-family: "Geist Mono", monospace; font-size: 7px; color: var(--mut); margin-left: 2px; }
+.bar { width: 46px; height: 2px; background: var(--line); margin-top: 5px; margin-left: auto; }
+.bar i { display: block; height: 100%; background: var(--paper); }
+.party { display: flex; flex-direction: column; gap: 3px; width: 3px; margin-left: 2px; }
+.party i { height: 7px; background: var(--paper); opacity: .55; }
+/* round log */
+.rounds {
+  display: grid; grid-template-columns: 1.15fr .85fr .8fr; gap: 22px;
+  margin-top: 14px; padding-top: 11px; border-top: 1px solid var(--line);
+}
+.rlab { font-family: "Geist Mono", monospace; font-size: 7px; letter-spacing: .2em; color: var(--mut); text-transform: uppercase; margin-bottom: 6px; }
+.pips { display: flex; gap: 5px; }
+.pip {
+  width: 30px; height: 33px; flex: none;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
+  border: 1px solid var(--line-hi);
+  font-family: "Geist Mono", monospace;
+}
+.pip b { font-size: 8px; font-weight: 500; }
+.pip span { font-size: 5.5px; color: var(--mut); letter-spacing: .1em; }
+.pip.w { background: var(--paper); color: var(--ink); border-color: var(--paper); }
+.pip.w span { color: #55554f; }
+.pip.l { opacity: .45; }
+.eco { display: flex; align-items: baseline; gap: 7px; }
+.eco b { font-family: "Geist Mono", monospace; font-size: 17px; letter-spacing: -.04em; font-weight: 500; }
+.eco span { font-family: "Geist Mono", monospace; font-size: 6.5px; letter-spacing: .12em; color: var(--mut); text-transform: uppercase; }
+.next { font-family: "Geist Mono", monospace; font-size: 7px; letter-spacing: .14em; color: var(--mut); text-transform: uppercase; line-height: 1.8; }
+.next b { color: var(--paper); font-weight: 500; }
+/* footer */
+.foot {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line);
+  font-family: "Geist Mono", monospace; font-size: 7.5px; letter-spacing: .2em; color: var(--mut);
+  text-transform: uppercase;
+}
+.foot .grp { display: flex; align-items: center; gap: 14px; }
+.foot b { color: var(--paper); font-weight: 500; }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="rail">
+    <div class="logo">C</div>
+    <nav class="nav">
+      <a class="on"><span class="jp">試合</span><span class="en">MATCH</span></a>
+      <a><span class="jp">記録</span><span class="en">TRACKER</span></a>
+      <a><span class="jp">友達</span><span class="en">FRIENDS</span></a>
+      <a><span class="jp">設定</span><span class="en">THEME</span></a>
+    </nav>
+    <div class="rail-foot">
+      <span class="dot"></span>
+      <span>RIOT LINK</span>
+    </div>
+  </aside>
+
+  <main>
+    <div class="topline">
+      <span><b>CRYMORA</b> / MATCH COMPANION</span>
+      <span>BR-SP · 32MS · <b>11/12 RANKS</b></span>
+    </div>
+
+    <section class="hero">
+      <div class="speed"></div>
+      <div class="watermark">7</div>
+      <div>
+        <div class="kicker">COMPETITIVE // ROUND 07</div>
+        <h1><em>ASC</em>ENT</h1>
+        <div class="meta"><span>4 : 3</span><i></i><span>ATTACK</span><i></i><span>01:42</span></div>
+      </div>
+      <div class="score-wrap">
+        <div class="score">4<span>:</span>3</div>
+        <div class="live"><b></b>LIVE</div>
+      </div>
+    </section>
+
+    <div class="roster">
+      <section class="team">
+        <div class="team-head"><span class="t">ALLIES</span><span class="jp">味方</span><span class="n">05</span></div>
+        <div class="rows">
+          <div class="p star">
+            <div class="badge">A1</div>
+            <div class="who"><div class="nm">kuro<span class="you">YOU</span></div><div class="ag">Sova · Initiator</div></div>
+            <div class="rr"><b>62</b><span>RR</span><div class="bar"><i style="width:62%"></i></div></div>
+          </div>
+          <div class="p">
+            <div class="badge">I1</div>
+            <div class="who"><div class="nm">m1nt</div><div class="ag">Omen · Controller</div></div>
+            <div class="rr"><b>24</b><span>RR</span><div class="bar"><i style="width:24%"></i></div></div>
+            <div class="party"><i></i><i></i></div>
+          </div>
+          <div class="p">
+            <div class="badge">D3</div>
+            <div class="who"><div class="nm">sova diff</div><div class="ag">Raze · Duelist</div></div>
+            <div class="rr"><b>88</b><span>RR</span><div class="bar"><i style="width:88%"></i></div></div>
+          </div>
+          <div class="p">
+            <div class="badge">A2</div>
+            <div class="who"><div class="nm">VEX</div><div class="ag">Killjoy · Sentinel</div></div>
+            <div class="rr"><b>14</b><span>RR</span><div class="bar"><i style="width:14%"></i></div></div>
+            <div class="party"><i></i><i></i></div>
+          </div>
+          <div class="p">
+            <div class="badge">A1</div>
+            <div class="who"><div class="nm">GODRINKING67</div><div class="ag">Fade · Initiator</div></div>
+            <div class="rr"><b>43</b><span>RR</span><div class="bar"><i style="width:43%"></i></div></div>
+          </div>
+        </div>
+      </section>
+
+      <div class="vline"></div>
+
+      <section class="team">
+        <div class="team-head"><span class="t">ENEMIES</span><span class="jp">敵</span><span class="n">05</span></div>
+        <div class="rows">
+          <div class="p">
+            <div class="badge">A3</div>
+            <div class="who"><div class="nm">tenz wannabe</div><div class="ag">Jett · Duelist</div></div>
+            <div class="rr"><b>71</b><span>RR</span><div class="bar"><i style="width:71%"></i></div></div>
+          </div>
+          <div class="p">
+            <div class="badge">I2</div>
+            <div class="who"><div class="nm">pluto</div><div class="ag">Viper · Controller</div></div>
+            <div class="rr"><b>08</b><span>RR</span><div class="bar"><i style="width:8%"></i></div></div>
+          </div>
+          <div class="p">
+            <div class="badge">D2</div>
+            <div class="who"><div class="nm">yoru</div><div class="ag">Chamber · Sentinel</div></div>
+            <div class="rr"><b>54</b><span>RR</span><div class="bar"><i style="width:54%"></i></div></div>
+          </div>
+          <div class="p">
+            <div class="badge">A1</div>
+            <div class="who"><div class="nm">saint</div><div class="ag">Skye · Initiator</div></div>
+            <div class="rr"><b>29</b><span>RR</span><div class="bar"><i style="width:29%"></i></div></div>
+          </div>
+          <div class="p">
+            <div class="badge">I1</div>
+            <div class="who"><div class="nm">neko</div><div class="ag">Neon · Duelist</div></div>
+            <div class="rr"><b>11</b><span>RR</span><div class="bar"><i style="width:11%"></i></div></div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <section class="rounds">
+      <div>
+        <div class="rlab">Round log</div>
+        <div class="pips">
+          <div class="pip w"><b>1</b><span>W</span></div>
+          <div class="pip l"><b>2</b><span>L</span></div>
+          <div class="pip w"><b>3</b><span>W</span></div>
+          <div class="pip w"><b>4</b><span>W</span></div>
+          <div class="pip l"><b>5</b><span>L</span></div>
+          <div class="pip l"><b>6</b><span>L</span></div>
+          <div class="pip w"><b>7</b><span>W</span></div>
+        </div>
+      </div>
+      <div>
+        <div class="rlab">Economia</div>
+        <div class="eco"><b>4.850</b><span>créditos</span></div>
+        <div class="next" style="margin-top:4px">Próxima: <b>full buy</b></div>
+      </div>
+      <div>
+        <div class="rlab">Leitura</div>
+        <div class="next">Aliados <b>+2</b> em rounds<br>Enemies <b>3</b> eco rounds</div>
+      </div>
+    </section>
+
+    <footer class="foot">
+      <div class="grp"><span><b>●</b> RIOT CONNECTED</span><span>10 PLAYERS</span><span>4 PARTY</span></div>
+      <span>DATA FROM LOCAL CLIENT</span>
+    </footer>
+  </main>
+</div>
+</body>
+</html>

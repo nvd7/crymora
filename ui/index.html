@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Crymora</title>
+<script src="/diag.js"></script>
+<link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+<div id="app" aria-live="polite">
+  <aside id="rail">
+    <button class="mark is-active" id="home-btn" type="button" title="Início" data-i18n-title="tabHome" aria-label="Início">
+      <img class="mark-logo" src="/assets/logo.png" alt="" aria-hidden="true" />
+    </button>
+    <nav id="tabs" role="tablist">
+      <button class="tab" role="tab" data-view="match" title="Partida" data-i18n-title="tabMatch">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none"><path d="M4 6h16M4 12h10M4 18h13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+      <button class="tab" role="tab" data-view="tracker" title="Tracker" data-i18n-title="tabTracker">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none"><path d="M3 12h4l2-7 4 14 2-7h6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <button class="tab" role="tab" data-view="friends" title="Amigos" data-i18n-title="tabFriends">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none"><circle cx="9" cy="8" r="3.2" stroke="currentColor" stroke-width="1.8"/><path d="M3.5 19c.6-3 2.8-4.6 5.5-4.6S13.9 16 14.5 19" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="17" cy="9" r="2.4" stroke="currentColor" stroke-width="1.8"/><path d="M16 14.6c2.3.2 3.9 1.6 4.4 4.1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      </button>
+      <button class="tab" role="tab" data-view="settings" title="Ajustes" data-i18n-title="tabSettings">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none"><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.8"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      </button>
+    </nav>
+    <div id="conn" class="conn" title="Estado da sessão"><span class="dot"></span></div>
+  </aside>
+
+  <main id="main">
+    <!-- HOME VIEW (inicial; abre pelo logo) -->
+    <section id="view-home" class="view is-active">
+      <header class="bar">
+        <div>
+          <h1 data-i18n="homeTitle">Início</h1>
+          <p class="sub" data-i18n="homeSub">Sua sessão em um só lugar</p>
+        </div>
+        <div id="home-pill" class="pill pill-idle">—</div>
+      </header>
+      <div id="home-body" class="home-body"></div>
+    </section>
+
+    <!-- MATCH VIEW -->
+    <section id="view-match" class="view">
+      <header class="bar" id="match-bar">
+        <div>
+          <h1 id="match-title">Aguardando partida</h1>
+          <p id="match-sub" class="sub">Abra o Valorant ou entre na fila para começar</p>
+        </div>
+        <div id="match-pill" class="pill pill-idle">idle</div>
+      </header>
+      <div id="teams" class="teams"></div>
+    </section>
+
+    <!-- FRIENDS VIEW -->
+    <section id="view-friends" class="view">
+      <header class="bar">
+        <div>
+          <h1 data-i18n="friendsTitle">Amigos</h1>
+          <p class="sub" data-i18n="friendsSub">Online primeiro — direto do cliente do Valorant</p>
+        </div>
+      </header>
+      <div id="friends-list" class="cards col"></div>
+    </section>
+
+    <!-- TRACKER VIEW -->
+    <section id="view-tracker" class="view">
+      <header class="bar">
+        <div>
+          <h1 data-i18n="trackerTitle">Tracker</h1>
+          <p class="sub" data-i18n="trackerSub">Perfil completo da conta do jogador</p>
+        </div>
+      </header>
+      <div class="tracker-search-wrap">
+        <div class="tracker-search">
+          <svg class="search-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="6.5" stroke="currentColor" stroke-width="1.8"/><path d="m16 16 4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+          <input id="tracker-q" type="search" autocomplete="off" spellcheck="false"
+                 placeholder="Buscar Riot ID (Nome#TAG)" data-i18n-placeholder="trackerSearchPlaceholder"
+                 aria-label="Buscar Riot ID" />
+          <button class="btn primary" id="tracker-go" type="button" data-i18n="trackerSearchBtn">Buscar</button>
+        </div>
+        <div id="tracker-results" class="tracker-results" hidden></div>
+      </div>
+      <div id="tracker-body" class="tracker-body"></div>
+    </section>
+
+    <!-- SETTINGS VIEW -->
+    <section id="view-settings" class="view">
+      <header class="bar">
+        <div>
+          <h1 data-i18n="settingsTitle">Ajustes</h1>
+          <p class="sub" data-i18n="settingsSub">Sistema, aparência e segurança</p>
+        </div>
+      </header>
+      <div class="set-grid">
+        <div class="set-head" data-i18n="secSystem">Sistema</div>
+        <label class="set">
+          <span data-i18n="setBoot">Iniciar com o Windows</span>
+          <input type="checkbox" id="set-boot" />
+          <i class="switch" aria-hidden="true"></i>
+        </label>
+        <label class="set">
+          <span data-i18n="setAlerts">Alertas de partida</span>
+          <input type="checkbox" id="set-alerts" />
+          <i class="switch" aria-hidden="true"></i>
+        </label>
+        <label class="set">
+          <span data-i18n="setDiscord">Presença no Discord</span>
+          <input type="checkbox" id="set-discord" />
+          <i class="switch" aria-hidden="true"></i>
+        </label>
+
+        <div class="set-head" data-i18n="secAppearance">Aparência</div>
+        <div class="set">
+          <span data-i18n="setTheme">Cor de destaque</span>
+          <div class="theme-chips" id="theme-chips"></div>
+        </div>
+        <div class="set">
+          <span data-i18n="setAccent">Cor personalizada</span>
+          <div class="accent-row">
+            <input type="color" id="set-accent" value="#ff4655" aria-label="Cor personalizada" />
+            <button class="link-btn" id="set-accent-reset" type="button" data-i18n="setAccentReset">Usar tema</button>
+          </div>
+        </div>
+        <div class="set">
+          <span data-i18n="setDensity">Densidade</span>
+          <div class="lang-seg" id="density-seg">
+            <button class="lang-btn" type="button" data-density="comfortable" data-i18n="densityComfort">Confortável</button>
+            <button class="lang-btn" type="button" data-density="compact" data-i18n="densityCompact">Compacto</button>
+          </div>
+        </div>
+        <label class="set">
+          <span data-i18n="setMotion">Animações</span>
+          <input type="checkbox" id="set-motion" />
+          <i class="switch" aria-hidden="true"></i>
+        </label>
+        <label class="set">
+          <span data-i18n="setBg">Efeitos de fundo</span>
+          <input type="checkbox" id="set-bg" />
+          <i class="switch" aria-hidden="true"></i>
+        </label>
+
+        <div class="set-head" data-i18n="secContent">Conteúdo</div>
+        <label class="set">
+          <span data-i18n="setShowLevel">Nível da conta</span>
+          <input type="checkbox" id="set-show-level" />
+          <i class="switch" aria-hidden="true"></i>
+        </label>
+        <label class="set">
+          <span data-i18n="setShowPeak">Pico de carreira</span>
+          <input type="checkbox" id="set-show-peak" />
+          <i class="switch" aria-hidden="true"></i>
+        </label>
+        <label class="set">
+          <span data-i18n="setShowLb">Leaderboard</span>
+          <input type="checkbox" id="set-show-lb" />
+          <i class="switch" aria-hidden="true"></i>
+        </label>
+
+        <div class="set-head" data-i18n="secPrivacy">Privacidade e segurança</div>
+        <div class="set security-row">
+          <span class="shield" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none"><path d="M12 3 5 6v5c0 4.4 2.8 8.2 7 9.5 4.2-1.3 7-5.1 7-9.5V6l-7-3Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="m9 12 2 2 4-4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+          <span class="set-label">
+            <span data-i18n="setSecurityTitle">Somente leitura</span>
+            <small class="set-hint" data-i18n="setSecurityNote">Sem memória do jogo, injeção, overlay ou automação. O app exibe os dois times no pré-jogo; veja o aviso de política da Riot no LEIA-ME.</small>
+          </span>
+        </div>
+        <div class="set security-row">
+          <span class="shield" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none"><path d="M4 12h16M12 4v16" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.7"/></svg>
+          </span>
+          <span class="set-label">
+            <span data-i18n="setPrivacyTitle">Conexões mínimas</span>
+            <small class="set-hint" data-i18n="setPrivacyNote">Só Riot (cliente local, glz/pd) e o CDN público de ícones. Nenhuma telemetria ou backend próprio.</small>
+          </span>
+        </div>
+
+        <div class="set about">
+          <span class="ver" id="app-version">—</span>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div id="credit">made by <b>nvd7</b></div>
+<div id="toasts" aria-live="polite"></div>
+
+<div id="modal" class="modal" hidden>
+  <div class="modal-backdrop" data-close="1"></div>
+  <div class="modal-card" id="modal-card" role="dialog" aria-modal="true"></div>
+</div>
+
+<script src="/app.js" type="module"></script>
+</body>
+</html>

@@ -1,0 +1,65 @@
+Crymora 0.1.0 — instalador final
+================================
+
+Arquivo : Crymora_0.1.0_x64-setup.exe
+Tamanho : 3.394.469 bytes (3,24 MiB)
+SHA-256 : 06B719134FA34C744551ADB1E679A18250139723DFE7E759C3BCD53CD2299925
+Gerado  : 29/10/2026 21:01
+
+Instalação
+----------
+- Instala só para o usuário atual em %LOCALAPPDATA%\Crymora (não pede admin).
+- Cria atalho no Menu Iniciar e entrada em Aplicativos instalados.
+- Desinstalador: %LOCALAPPDATA%\Crymora\uninstall.exe
+
+Assinatura
+----------
+O executável não é assinado digitalmente (não há certificado de code signing).
+O Windows SmartScreen pode exibir um aviso na primeira execução:
+"Mais informações" → "Executar assim mesmo".
+
+Segurança
+---------
+- Somente leitura: APIs locais do Riot Client e logs. Sem memória do jogo,
+  injeção, hooks, overlay, automação de input ou alteração de arquivos do jogo.
+- Pré-jogo e partida: o roster mostra os dois times (rank/level), inclusive
+  os inimigos antes da partida. Veja o AVISO na seção de política abaixo.
+- Links externos limitados a tracker.gg e twitch.tv (https), validados no Rust.
+- CSP restritiva, sem permissão de opener para a página, logs com rotação.
+
+Desempenho
+----------
+- Volta com Alt+Tab: ao recuperar o foco, o app roda uma atualização na
+  hora e só então redesenha (não espera o próximo ciclo).
+- Verificação contínua: ~1,5 s no menu e ~1 s durante a partida; as
+  consultas de elo rodam em paralelo.
+- Pré-jogo: a partida (times e ranks) só aparece quando todos os elos
+  estão confirmados — unranked confirmado também conta. Se alguma
+  consulta falhar, a tela libera em até 5 s com o que tiver.
+
+Política da Riot
+----------------
+O Crymora não é afiliado, endossado ou aprovado pela Riot Games. Ele usa
+APIs locais não oficiais do Riot Client, somente leitura. A Riot não mantém
+uma lista pública de apps seguros e não garante apps de terceiros; use por
+sua conta e risco. O app não é cheat: não lê memória do jogo, não injeta,
+não cria overlay, não automatiza input e não altera arquivos do jogo.
+
+AVISO IMPORTANTE: esta versão mostra os inimigos já no pré-jogo, com
+rank/level. A Riot classifica "scouting" (ver stats de adversários antes
+da partida) como uso NÃO aprovado e afirma que apps não autorizados que
+puxam informação oculta do cliente podem resultar em banimento. Use por
+sua conta e risco; não compartilhe com quem não aceitou esse risco.
+
+Privacidade
+-----------
+- Nenhuma telemetria e nenhum servidor próprio: os dados ficam na máquina.
+- Conexões: APIs locais do Riot Client, endpoints do próprio Riot (glz/pd)
+  com o token local, e CDN pública valorant-api.com para ícones/mapas.
+- Links externos só abrem tracker.gg e twitch.tv (https).
+
+Observação
+----------
+A troca de conta agora é detectada pelo puuid mesmo quando a sessão anterior
+cai para "offline" no meio da troca: o nick próprio e o cache de amigos são
+refeitos. Validado com a conta "n v#d 7" após a troca real.

@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<title>Crymora — Ink</title>
+<style>
+@font-face {
+  font-family: "Geist";
+  src: url("../../ui/assets/geist-latin-wght-normal-BgDaEnEv.woff2") format("woff2");
+  font-weight: 100 900;
+}
+@font-face {
+  font-family: "Geist Mono";
+  src: url("../../ui/assets/geist-mono-latin-wght-normal-B_7UjwxQ.woff2") format("woff2");
+  font-weight: 100 900;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #0a0a0b;
+  --panel: #0e0e10;
+  --paper: #ececea;
+  --mut: #77777c;
+  --line: #1f1f22;
+  --line-hi: #34343a;
+}
+html, body { width: 1160px; height: 740px; overflow: hidden; }
+body {
+  background: var(--bg);
+  color: var(--paper);
+  font-family: "Geist", "Segoe UI", sans-serif;
+  user-select: none;
+  position: relative;
+}
+body::before {
+  content: "";
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.55'/%3E%3C/svg%3E");
+  opacity: .035; pointer-events: none;
+}
+.app { display: grid; grid-template-columns: 198px 1fr; width: 1160px; height: 740px; position: relative; }
+/* ---------- rail ---------- */
+.rail {
+  border-right: 1px solid var(--line);
+  padding: 30px 26px 24px;
+  display: flex; flex-direction: column;
+  background: linear-gradient(180deg, #0c0c0d, #09090a);
+}
+.wordmark { font-family: Georgia, "Times New Roman", serif; font-size: 27px; letter-spacing: -.035em; line-height: 1; }
+.wordmark i { font-style: italic; }
+.tagline {
+  margin-top: 8px;
+  font-family: "Geist Mono", monospace; font-size: 7px; letter-spacing: .28em;
+  color: var(--mut); text-transform: uppercase;
+}
+.nav { margin-top: 58px; display: flex; flex-direction: column; }
+.nav a {
+  display: grid; grid-template-columns: 22px 1fr; align-items: center;
+  gap: 11px; padding: 13px 0 13px 14px;
+  border-left: 1px solid transparent;
+  margin-left: -15px;
+  color: var(--mut); text-decoration: none;
+  font-size: 10px; letter-spacing: .16em; text-transform: uppercase;
+}
+.nav a b { font-family: "Geist Mono", monospace; font-size: 8px; font-weight: 400; color: #4c4c52; }
+.nav a.on { color: var(--paper); border-left-color: var(--paper); }
+.nav a.on b { color: var(--paper); }
+.nav a:not(.on):hover { color: #b8b8b6; }
+.rail-foot { margin-top: auto; }
+.conn { display: flex; align-items: center; gap: 8px; font-family: "Geist Mono", monospace; font-size: 7.5px; letter-spacing: .18em; color: var(--mut); }
+.conn i { width: 6px; height: 6px; border-radius: 50%; background: var(--paper); }
+.ver { margin-top: 9px; font-family: "Geist Mono", monospace; font-size: 7px; letter-spacing: .14em; color: #4b4b50; }
+/* ---------- main ---------- */
+main { padding: 28px 40px 22px 38px; display: flex; flex-direction: column; min-width: 0; position: relative; }
+.vertical {
+  position: absolute; right: 16px; top: 64px;
+  writing-mode: vertical-rl;
+  font-family: Georgia, serif; font-size: 40px; color: var(--paper); opacity: .07;
+  letter-spacing: .2em;
+}
+.head { display: flex; align-items: flex-start; justify-content: space-between; }
+.kicker { font-family: "Geist Mono", monospace; font-size: 7.5px; letter-spacing: .26em; color: var(--mut); text-transform: uppercase; }
+.head h1 { margin-top: 7px; font-family: Georgia, serif; font-size: 31px; font-weight: 400; letter-spacing: -.02em; }
+.head h1 i { font-style: italic; color: #b9b9b6; }
+.date { text-align: right; font-family: "Geist Mono", monospace; font-size: 7.5px; letter-spacing: .16em; color: var(--mut); line-height: 1.7; text-transform: uppercase; }
+.date b { color: var(--paper); font-weight: 400; }
+/* hero */
+.hero {
+  margin-top: 24px;
+  border-top: 1px solid var(--line-hi);
+  border-bottom: 1px solid var(--line-hi);
+  display: grid; grid-template-columns: 1fr 190px;
+  align-items: center;
+  padding: 18px 2px;
+  min-height: 150px;
+}
+.hero .small { font-family: "Geist Mono", monospace; font-size: 8px; letter-spacing: .22em; color: var(--mut); text-transform: uppercase; }
+.hero .map { font-family: Georgia, serif; font-size: 52px; line-height: 1; letter-spacing: -.03em; margin: 7px 0 8px; }
+.hero .map i { font-style: italic; color: #a9a9a6; }
+.hero .scoreline { display: flex; align-items: baseline; gap: 14px; }
+.hero .score { font-family: Georgia, serif; font-size: 38px; letter-spacing: .02em; }
+.hero .score span { color: #4d4d52; padding: 0 4px; }
+.hero .st { font-family: "Geist Mono", monospace; font-size: 7.5px; letter-spacing: .16em; color: var(--mut); text-transform: uppercase; }
+.enso { position: relative; width: 160px; height: 160px; justify-self: end; display: grid; place-items: center; }
+.enso svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.enso .r { font-family: "Geist Mono", monospace; font-size: 26px; letter-spacing: -.03em; }
+.enso .l { position: absolute; bottom: 33px; font-family: "Geist Mono", monospace; font-size: 6.5px; letter-spacing: .3em; color: var(--mut); }
+/* roster */
+.roster-head {
+  display: flex; align-items: baseline; justify-content: space-between;
+  margin-top: 20px; padding-bottom: 8px;
+  border-bottom: 1px solid var(--line-hi);
+}
+.roster-head .t { font-family: "Geist Mono", monospace; font-size: 8px; letter-spacing: .24em; color: var(--paper); text-transform: uppercase; }
+.roster-head .c { font-family: "Geist Mono", monospace; font-size: 7.5px; letter-spacing: .18em; color: var(--mut); }
+.teams { display: grid; grid-template-columns: 1fr 1fr; gap: 0 46px; margin-top: 2px; flex: 1; min-height: 0; }
+.teams > section { display: flex; flex-direction: column; min-height: 0; }
+.team-label {
+  display: flex; align-items: baseline; gap: 8px;
+  padding: 9px 0 7px;
+  font-family: "Geist Mono", monospace; font-size: 7px; letter-spacing: .22em;
+  color: var(--mut); text-transform: uppercase;
+}
+.team-label b { color: var(--paper); font-weight: 400; }
+.team-label .jp { font-family: Georgia, serif; font-size: 9px; letter-spacing: .1em; color: #5c5c61; }
+.rows { display: flex; flex-direction: column; flex: 1; }
+.p {
+  display: grid; grid-template-columns: 24px 1fr auto;
+  align-items: center; gap: 8px; flex: 1;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+}
+.p:last-child { border-bottom: none; }
+.idx { font-family: "Geist Mono", monospace; font-size: 7px; color: #4a4a4f; }
+.nm { font-size: 12.5px; font-weight: 500; letter-spacing: -.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nm em { font-style: normal; font-family: "Geist Mono", monospace; font-size: 6.5px; letter-spacing: .14em; color: var(--mut); border: 1px solid var(--line-hi); padding: 1px 4px; margin-left: 6px; vertical-align: 1px; }
+.ag { font-family: "Geist Mono", monospace; font-size: 6.5px; letter-spacing: .13em; color: #55555a; margin-top: 3px; text-transform: uppercase; }
+.rank { text-align: right; }
+.rank .rk { font-size: 10px; color: #c7c7c4; letter-spacing: .02em; }
+.rank .rr { font-family: "Geist Mono", monospace; font-size: 7.5px; color: #5d5d62; margin-top: 3px; letter-spacing: .06em; }
+.p.me .nm { color: var(--paper); }
+.p.me .idx { color: var(--paper); }
+/* round history */
+.history {
+  display: flex; align-items: center; gap: 14px;
+  margin-top: 15px; padding-top: 10px; border-top: 1px solid var(--line);
+}
+.history .lab { font-family: "Geist Mono", monospace; font-size: 6.5px; letter-spacing: .2em; color: var(--mut); text-transform: uppercase; }
+.hist { display: flex; gap: 6px; }
+.hist span {
+  width: 19px; height: 19px; border-radius: 50%;
+  display: grid; place-items: center;
+  border: 1px solid var(--line-hi);
+  font-family: "Geist Mono", monospace; font-size: 6px; color: var(--mut);
+}
+.hist span.w { background: var(--paper); color: var(--ink); border-color: var(--paper); }
+.hist span.l { opacity: .38; }
+.history .eco { margin-left: auto; font-family: "Geist Mono", monospace; font-size: 6.5px; letter-spacing: .12em; color: var(--mut); text-transform: uppercase; }
+.history .eco b { color: var(--paper); font-weight: 400; }
+/* footer */
+.foot {
+  margin-top: auto; padding-top: 12px; border-top: 1px solid var(--line);
+  display: flex; align-items: center; justify-content: space-between;
+  font-family: "Geist Mono", monospace; font-size: 7px; letter-spacing: .18em; color: #55555a; text-transform: uppercase;
+}
+.foot i { font-family: Georgia, serif; font-size: 11px; letter-spacing: 0; color: #8e8e8b; text-transform: none; }
+.foot b { color: #a9a9a6; font-weight: 400; }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="rail">
+    <div class="wordmark">cry<i>mora</i></div>
+    <div class="tagline">Valorant Companion</div>
+    <nav class="nav">
+      <a class="on"><b>01</b><span>Partida</span></a>
+      <a><b>02</b><span>Tracker</span></a>
+      <a><b>03</b><span>Amigos</span></a>
+      <a><b>04</b><span>Temas</span></a>
+    </nav>
+    <div class="rail-foot">
+      <div class="conn"><i></i> Riot · online</div>
+      <div class="ver">v0.1.0 · build 39</div>
+    </div>
+  </aside>
+
+  <main>
+    <div class="vertical">静</div>
+    <header class="head">
+      <div>
+        <div class="kicker">Partida / Competitivo</div>
+        <h1>Visão <i>geral</i></h1>
+      </div>
+      <div class="date"><b>Quinta, 29 out</b><br>BR-SP · 32 ms</div>
+    </header>
+
+    <section class="hero">
+      <div>
+        <div class="small">Rodada 07 · Ataque</div>
+        <div class="map">Ascent</div>
+        <div class="scoreline">
+          <div class="score">04<span>—</span>03</div>
+          <div class="st">01:42 restantes<br>11 de 12 elos</div>
+        </div>
+      </div>
+      <div class="enso">
+        <svg viewBox="0 0 160 160" fill="none" aria-hidden="true">
+          <path d="M132 51c-11-20-33-31-56-27-30 5-51 34-45 64 6 29 34 48 63 42 24-5 41-25 42-48" stroke="rgba(236,236,234,.34)" stroke-width="1.1" stroke-linecap="round"/>
+          <path d="M129 104c-9 17-27 28-47 27" stroke="rgba(236,236,234,.12)" stroke-width="1.1" stroke-linecap="round"/>
+        </svg>
+        <div class="r">07</div>
+        <div class="l">ROUND</div>
+      </div>
+    </section>
+
+    <div class="roster-head">
+      <div class="t">Elenco</div>
+      <div class="c">10 jogadores · 2 grupos</div>
+    </div>
+
+    <div class="teams">
+      <section>
+        <div class="team-label"><b>Aliados</b><span class="jp">味方</span><span>· 05</span></div>
+        <div class="rows">
+          <div class="p me">
+            <div class="idx">01</div>
+            <div><div class="nm">kuro<em>você</em></div><div class="ag">Sova · Iniciador</div></div>
+            <div class="rank"><div class="rk">Ascendente 1</div><div class="rr">62 RR</div></div>
+          </div>
+          <div class="p">
+            <div class="idx">02</div>
+            <div><div class="nm">m1nt</div><div class="ag">Omen · Controlador</div></div>
+            <div class="rank"><div class="rk">Imortal 1</div><div class="rr">24 RR</div></div>
+          </div>
+          <div class="p">
+            <div class="idx">03</div>
+            <div><div class="nm">sova diff</div><div class="ag">Raze · Duelista</div></div>
+            <div class="rank"><div class="rk">Diamante 3</div><div class="rr">88 RR</div></div>
+          </div>
+          <div class="p">
+            <div class="idx">04</div>
+            <div><div class="nm">VEX</div><div class="ag">Killjoy · Sentinela</div></div>
+            <div class="rank"><div class="rk">Ascendente 2</div><div class="rr">14 RR</div></div>
+          </div>
+          <div class="p">
+            <div class="idx">05</div>
+            <div><div class="nm">GODRINKING67</div><div class="ag">Fade · Iniciador</div></div>
+            <div class="rank"><div class="rk">Ascendente 1</div><div class="rr">43 RR</div></div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div class="team-label"><b>Inimigos</b><span class="jp">敵</span><span>· 05</span></div>
+        <div class="rows">
+          <div class="p">
+            <div class="idx">01</div>
+            <div><div class="nm">tenz wannabe</div><div class="ag">Jett · Duelista</div></div>
+            <div class="rank"><div class="rk">Ascendente 3</div><div class="rr">71 RR</div></div>
+          </div>
+          <div class="p">
+            <div class="idx">02</div>
+            <div><div class="nm">pluto</div><div class="ag">Viper · Controlador</div></div>
+            <div class="rank"><div class="rk">Imortal 2</div><div class="rr">08 RR</div></div>
+          </div>
+          <div class="p">
+            <div class="idx">03</div>
+            <div><div class="nm">yoru</div><div class="ag">Chamber · Sentinela</div></div>
+            <div class="rank"><div class="rk">Diamante 2</div><div class="rr">54 RR</div></div>
+          </div>
+          <div class="p">
+            <div class="idx">04</div>
+            <div><div class="nm">saint</div><div class="ag">Skye · Iniciador</div></div>
+            <div class="rank"><div class="rk">Ascendente 1</div><div class="rr">29 RR</div></div>
+          </div>
+          <div class="p">
+            <div class="idx">05</div>
+            <div><div class="nm">neko</div><div class="ag">Neon · Duelista</div></div>
+            <div class="rank"><div class="rk">Imortal 1</div><div class="rr">11 RR</div></div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div class="history">
+      <span class="lab">Histórico</span>
+      <div class="hist">
+        <span class="w">1</span><span>2</span><span class="w">3</span><span class="w">4</span><span>5</span><span>6</span><span class="w">7</span>
+      </div>
+      <span class="eco">Economia <b>4.850</b> · próximo <b>full buy</b></span>
+    </div>
+
+    <footer class="foot">
+      <span><i>“onze de doze elos identificados.”</i></span>
+      <span><b>Dados locais</b> · sem cache externo</span>
+    </footer>
+  </main>
+</div>
+</body>
+</html>

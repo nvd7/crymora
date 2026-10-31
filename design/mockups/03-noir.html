@@ -1,0 +1,445 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<title>Crymora — Noir + Temas</title>
+<style>
+@font-face {
+  font-family: "Geist";
+  src: url("../../ui/assets/geist-latin-wght-normal-BgDaEnEv.woff2") format("woff2");
+  font-weight: 100 900;
+}
+@font-face {
+  font-family: "Geist Mono";
+  src: url("../../ui/assets/geist-mono-latin-wght-normal-B_7UjwxQ.woff2") format("woff2");
+  font-weight: 100 900;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #0c0c0e;
+  --panel: #141416;
+  --panel-2: #18181b;
+  --paper: #f0f0ee;
+  --mut: #85858c;
+  --line: #26262a;
+  --line-hi: #3a3a40;
+  --radius: 9px;
+}
+html, body { width: 1160px; height: 740px; overflow: hidden; }
+body {
+  background: var(--bg);
+  color: var(--paper);
+  font-family: "Geist", "Segoe UI", sans-serif;
+  user-select: none;
+}
+.app { display: grid; grid-template-columns: 58px 1fr 322px; width: 1160px; height: 740px; }
+/* ---------- rail ---------- */
+.rail {
+  border-right: 1px solid var(--line);
+  display: flex; flex-direction: column; align-items: center;
+  padding: 16px 0;
+  background: #0a0a0c;
+}
+.logo {
+  width: 30px; height: 30px; display: grid; place-items: center;
+  background: var(--paper); color: #0a0a0c;
+  font-weight: 900; font-size: 16px; letter-spacing: -.08em;
+  border-radius: 2px;
+}
+.nav { display: flex; flex-direction: column; gap: 6px; margin-top: 34px; }
+.nav a {
+  width: 36px; height: 36px; display: grid; place-items: center;
+  color: #6b6b72; text-decoration: none;
+  border: 1px solid transparent; border-radius: 7px;
+}
+.nav a svg { width: 17px; height: 17px; }
+.nav a.on { color: var(--paper); background: var(--panel-2); border-color: var(--line-hi); }
+.rail-foot { margin-top: auto; }
+.rail-foot .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--paper); box-shadow: 0 0 9px rgba(255,255,255,.35); }
+/* ---------- main ---------- */
+main { min-width: 0; padding: 16px 20px 14px; display: flex; flex-direction: column; }
+.topbar { display: flex; align-items: center; justify-content: space-between; height: 34px; border-bottom: 1px solid var(--line); }
+.brand { font-family: "Geist Mono", monospace; font-size: 8px; letter-spacing: .3em; color: #6f6f76; }
+.brand b { color: var(--paper); font-weight: 500; }
+.tabs { display: flex; gap: 20px; height: 100%; align-items: center; }
+.tabs a {
+  font-family: "Geist Mono", monospace; font-size: 8px; letter-spacing: .18em;
+  color: #6f6f76; text-decoration: none; height: 100%; display: flex; align-items: center;
+  border-bottom: 1px solid transparent;
+}
+.tabs a.on { color: var(--paper); border-bottom-color: var(--paper); }
+.live {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: "Geist Mono", monospace; font-size: 7px; letter-spacing: .18em;
+  color: #b9b9bd; border: 1px solid var(--line-hi); border-radius: 999px; padding: 4px 8px;
+}
+.live i { width: 4px; height: 4px; border-radius: 50%; background: var(--paper); animation: blink 1.5s steps(1) infinite; }
+@keyframes blink { 50% { opacity: .2; } }
+/* hero */
+.hero {
+  margin-top: 14px;
+  background: linear-gradient(120deg, #161618, #101012 62%);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 15px 18px;
+  display: flex; align-items: center; justify-content: space-between;
+  position: relative; overflow: hidden;
+  clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 0 100%);
+}
+.hero::after {
+  content: ""; position: absolute; inset: 0;
+  background-image: radial-gradient(rgba(255,255,255,.12) .5px, transparent .7px);
+  background-size: 4px 4px; opacity: .08; pointer-events: none;
+}
+.hero .k { font-family: "Geist Mono", monospace; font-size: 7px; letter-spacing: .24em; color: var(--mut); text-transform: uppercase; }
+.hero h1 { font-size: 38px; font-weight: 750; letter-spacing: -.045em; line-height: .95; margin: 6px 0 7px; }
+.hero h1 span { color: #6f6f76; }
+.hero .meta { display: flex; gap: 10px; align-items: center; font-family: "Geist Mono", monospace; font-size: 7.5px; letter-spacing: .12em; color: var(--mut); text-transform: uppercase; }
+.hero .meta i { width: 14px; height: 1px; background: var(--line-hi); }
+.hright { display: flex; align-items: center; gap: 16px; position: relative; z-index: 1; }
+.mapart { opacity: .55; }
+.score { font-family: "Geist Mono", monospace; font-size: 34px; letter-spacing: -.06em; }
+.score span { color: #4a4a51; margin: 0 3px; }
+.timer { font-family: "Geist Mono", monospace; font-size: 8px; letter-spacing: .14em; color: var(--mut); text-align: right; margin-top: 4px; }
+/* roster */
+.rhead { display: flex; align-items: baseline; justify-content: space-between; margin: 16px 0 8px; }
+.rhead .t { font-family: "Geist Mono", monospace; font-size: 8px; letter-spacing: .24em; text-transform: uppercase; }
+.rhead .c { font-family: "Geist Mono", monospace; font-size: 7px; letter-spacing: .14em; color: var(--mut); }
+.teams { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 8px; }
+.teams > section { display: flex; flex-direction: column; min-height: 0; }
+.team-h {
+  display: flex; align-items: center; gap: 7px;
+  font-family: "Geist Mono", monospace; font-size: 6.5px; letter-spacing: .2em;
+  color: var(--mut); text-transform: uppercase;
+  padding: 2px 2px 5px;
+}
+.team-h b { color: var(--paper); font-weight: 400; }
+.team-h .n { margin-left: auto; color: #5a5a60; }
+.cards { display: flex; flex-direction: column; gap: 5px; }
+.p {
+  display: grid; grid-template-columns: 28px 1fr auto;
+  align-items: center; gap: 9px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 7px 9px;
+  clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%);
+}
+.p.me { border-color: var(--line-hi); background: var(--panel-2); }
+.emblem {
+  width: 26px; height: 26px; border-radius: 50%;
+  border: 1px solid var(--line-hi);
+  display: grid; place-items: center;
+  font-family: "Geist Mono", monospace; font-size: 7px; color: #c9c9c6;
+}
+.p.me .emblem { background: var(--paper); color: #0a0a0c; border-color: var(--paper); font-weight: 600; }
+.nm { font-size: 11.5px; font-weight: 550; letter-spacing: -.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nm em { font-style: normal; font-family: "Geist Mono", monospace; font-size: 6px; letter-spacing: .12em; color: var(--mut); border: 1px solid var(--line-hi); border-radius: 3px; padding: 1px 3px; margin-left: 5px; vertical-align: 1px; }
+.ag { font-family: "Geist Mono", monospace; font-size: 6px; letter-spacing: .12em; color: #5f5f66; margin-top: 2px; text-transform: uppercase; }
+.rk { text-align: right; }
+.rk b { display: block; font-size: 8.5px; font-weight: 500; color: #b9b9bd; }
+.rk span { font-family: "Geist Mono", monospace; font-size: 6.5px; color: #616167; }
+/* round history */
+.history {
+  display: flex; align-items: center; gap: 11px;
+  margin-top: 13px; padding: 9px 11px;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 7px;
+}
+.history .lab { font-family: "Geist Mono", monospace; font-size: 6.5px; letter-spacing: .2em; color: var(--mut); text-transform: uppercase; }
+.hist { display: flex; gap: 5px; }
+.hist span {
+  width: 20px; height: 20px; border-radius: 4px;
+  display: grid; place-items: center;
+  border: 1px solid var(--line-hi);
+  font-family: "Geist Mono", monospace; font-size: 6.5px; color: var(--mut);
+}
+.hist span.w { background: var(--paper); color: #0a0a0c; border-color: var(--paper); }
+.hist span.l { opacity: .38; }
+.history .eco { margin-left: auto; font-family: "Geist Mono", monospace; font-size: 6.5px; letter-spacing: .1em; color: var(--mut); text-transform: uppercase; }
+.history .eco b { color: #c9c9c6; font-weight: 400; }
+/* summary */
+.summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 9px; }
+.sm { background: var(--panel); border: 1px solid var(--line); border-radius: 7px; padding: 9px 11px; }
+.sm span { font-family: "Geist Mono", monospace; font-size: 6.5px; letter-spacing: .18em; color: var(--mut); text-transform: uppercase; }
+.sm b { display: block; font-family: "Geist Mono", monospace; font-size: 17px; font-weight: 500; letter-spacing: -.03em; margin-top: 4px; }
+.sm em { display: block; font-style: normal; font-family: "Geist Mono", monospace; font-size: 6.5px; letter-spacing: .1em; color: #616167; margin-top: 2px; text-transform: uppercase; }
+/* footer */
+.foot {
+  margin-top: auto; padding-top: 9px; border-top: 1px solid var(--line);
+  display: flex; justify-content: space-between;
+  font-family: "Geist Mono", monospace; font-size: 6.5px; letter-spacing: .18em; color: #5b5b61; text-transform: uppercase;
+}
+.foot b { color: #a9a9ad; font-weight: 400; }
+/* ---------- theme panel ---------- */
+.theme {
+  border-left: 1px solid var(--line);
+  background: #101012;
+  padding: 18px 18px 16px;
+  display: flex; flex-direction: column;
+  min-width: 0;
+}
+.theme-head { display: flex; align-items: center; justify-content: space-between; }
+.theme-head h2 { font-family: "Geist Mono", monospace; font-size: 9px; letter-spacing: .26em; font-weight: 500; text-transform: uppercase; }
+.theme-head .x { color: var(--mut); font-size: 14px; line-height: 1; }
+.theme-sub { margin-top: 5px; font-family: "Geist Mono", monospace; font-size: 6.5px; letter-spacing: .12em; color: #5d5d64; text-transform: uppercase; }
+.sec { margin-top: 17px; }
+.sec-t {
+  display: flex; align-items: center; justify-content: space-between;
+  font-family: "Geist Mono", monospace; font-size: 6.5px; letter-spacing: .2em;
+  color: var(--mut); text-transform: uppercase; margin-bottom: 8px;
+}
+.sec-t span { color: #55555c; letter-spacing: .1em; }
+.presets { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+.preset {
+  border: 1px solid var(--line); border-radius: 6px; padding: 8px;
+  background: #141416; height: 58px;
+  display: flex; flex-direction: column; justify-content: space-between;
+}
+.preset.on { border-color: var(--paper); }
+.preset .bars { display: flex; align-items: flex-end; gap: 3px; height: 22px; }
+.preset .bars i { display: block; flex: 1; background: #3c3c42; border-radius: 1px; }
+.preset.on .bars i { background: #d8d8d5; }
+.preset .bars i:nth-child(1) { height: 55%; }
+.preset .bars i:nth-child(2) { height: 88%; }
+.preset .bars i:nth-child(3) { height: 34%; }
+.preset .bars i:nth-child(4) { height: 70%; }
+.preset .pl { display: flex; align-items: center; justify-content: space-between; font-family: "Geist Mono", monospace; font-size: 6.5px; letter-spacing: .14em; color: var(--mut); }
+.preset.on .pl { color: var(--paper); }
+.preset .pl b { font-weight: 400; }
+.swatches { display: flex; align-items: center; gap: 8px; }
+.sw { width: 22px; height: 22px; border-radius: 50%; border: 1px solid #3c3c42; }
+.sw.on { outline: 1px solid var(--paper); outline-offset: 2px; }
+.sw.custom { display: grid; place-items: center; background: conic-gradient(#f5f5f4, #8b8b92, #2a2a2e, #f5f5f4); font-size: 9px; color: #0a0a0c; }
+.seg { display: grid; grid-template-columns: repeat(3, 1fr); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.seg button {
+  border: 0; background: transparent; color: #6e6e75;
+  font-family: "Geist Mono", monospace; font-size: 6.5px; letter-spacing: .08em;
+  padding: 7px 0; text-transform: uppercase;
+}
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button.on { background: var(--panel-2); color: var(--paper); }
+.toggle-row {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 9px;
+  font-family: "Geist Mono", monospace; font-size: 6.5px; letter-spacing: .1em;
+  color: #6a6a71; text-transform: uppercase;
+}
+.tg { width: 27px; height: 14px; border-radius: 999px; background: #2a2a2e; position: relative; flex: none; }
+.tg::after { content: ""; position: absolute; top: 2px; left: 2px; width: 10px; height: 10px; border-radius: 50%; background: #7a7a80; }
+.tg.on { background: #3a3a40; }
+.tg.on::after { left: 15px; background: var(--paper); }
+.slider { display: grid; grid-template-columns: 1fr 34px; gap: 9px; align-items: center; margin-top: 8px; }
+.slider:first-of-type { margin-top: 0; }
+.slider label { grid-column: 1 / -1; font-family: "Geist Mono", monospace; font-size: 6.5px; letter-spacing: .12em; color: #6a6a71; text-transform: uppercase; margin-bottom: -3px; }
+.track { height: 2px; background: #2e2e33; position: relative; border-radius: 2px; }
+.track i { position: absolute; left: 0; top: 0; height: 2px; background: var(--paper); }
+.track b { position: absolute; top: 50%; width: 8px; height: 8px; border-radius: 50%; background: var(--paper); transform: translate(-50%, -50%); }
+.slider output { font-family: "Geist Mono", monospace; font-size: 7px; color: var(--mut); text-align: right; }
+.theme-foot { margin-top: auto; }
+.apply {
+  width: 100%; border: 0; border-radius: 6px;
+  background: var(--paper); color: #0a0a0c;
+  font-family: "Geist Mono", monospace; font-size: 8px; letter-spacing: .18em; text-transform: uppercase;
+  padding: 10px 0; font-weight: 600;
+}
+.export {
+  margin-top: 8px; text-align: center;
+  font-family: "Geist Mono", monospace; font-size: 6.5px; letter-spacing: .14em; color: #616168; text-transform: uppercase;
+}
+.export u { text-decoration-color: #3c3c42; text-underline-offset: 3px; }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="rail">
+    <div class="logo">C</div>
+    <nav class="nav">
+      <a class="on" title="Partida"><svg viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h10M4 18h13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></a>
+      <a title="Tracker"><svg viewBox="0 0 24 24" fill="none"><path d="M3 12h4l2-7 4 14 2-7h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+      <a title="Amigos"><svg viewBox="0 0 24 24" fill="none"><circle cx="9" cy="8" r="3" stroke="currentColor" stroke-width="1.6"/><path d="M3.8 19c.6-3 2.7-4.5 5.2-4.5S13.6 16 14.2 19M16.8 9.4a2.2 2.2 0 1 0 0-4.4M16 14.8c2.1.2 3.6 1.5 4 3.8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></a>
+      <a title="Temas"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3a9 9 0 1 0 0 18c1.4 0 2-.9 2-1.8 0-1.1-.8-1.7-.8-2.7 0-1 .8-1.8 1.9-1.8H17a4 4 0 0 0 4-4c0-4.3-4-7.7-9-7.7Z" stroke="currentColor" stroke-width="1.6"/><circle cx="7.8" cy="11" r="1" fill="currentColor"/><circle cx="10.5" cy="7.5" r="1" fill="currentColor"/><circle cx="14.5" cy="7.8" r="1" fill="currentColor"/></svg></a>
+    </nav>
+    <div class="rail-foot"><div class="dot"></div></div>
+  </aside>
+
+  <main>
+    <div class="topbar">
+      <div class="brand"><b>CRYMORA</b> / MATCH</div>
+      <div class="tabs">
+        <a class="on">Partida</a><a>Amigos</a><a>Tracker</a><a>Temas</a>
+      </div>
+      <div class="live"><i></i>LIVE</div>
+    </div>
+
+    <section class="hero">
+      <div>
+        <div class="k">Competitivo · Rodada 07</div>
+        <h1>ASCENT <span>/ A</span></h1>
+        <div class="meta"><span>4 : 3</span><i></i><span>Ataque</span><i></i><span>01:42</span></div>
+      </div>
+      <div class="hright">
+        <svg class="mapart" width="128" height="66" viewBox="0 0 128 66" fill="none">
+          <path d="M8 50 26 18h28l12 12h34l20 20H62L50 40H30L18 58H4l4-8Z" stroke="rgba(240,240,238,.4)" stroke-width="1"/>
+          <path d="M26 18v14M54 30v10M66 30v12M100 50v-8M40 40v18" stroke="rgba(240,240,238,.18)" stroke-width="1"/>
+          <circle cx="66" cy="30" r="2.4" fill="rgba(240,240,238,.75)"/>
+          <circle cx="100" cy="50" r="2.4" fill="rgba(240,240,238,.4)"/>
+        </svg>
+        <div>
+          <div class="score">4<span>:</span>3</div>
+          <div class="timer">R7 · 01:42</div>
+        </div>
+      </div>
+    </section>
+
+    <div class="rhead"><div class="t">Jogadores</div><div class="c">12 elos · 10 jogadores</div></div>
+
+    <div class="teams">
+      <section>
+        <div class="team-h"><b>Aliados</b><span>· 05</span><span class="n">TIME A</span></div>
+        <div class="cards">
+          <div class="p me">
+            <div class="emblem">A1</div>
+            <div><div class="nm">kuro<em>VOCÊ</em></div><div class="ag">Sova · Iniciador</div></div>
+            <div class="rk"><b>Asc 1</b><span>62 RR</span></div>
+          </div>
+          <div class="p">
+            <div class="emblem">I1</div>
+            <div><div class="nm">m1nt</div><div class="ag">Omen · Controlador</div></div>
+            <div class="rk"><b>Imo 1</b><span>24 RR</span></div>
+          </div>
+          <div class="p">
+            <div class="emblem">D3</div>
+            <div><div class="nm">sova diff</div><div class="ag">Raze · Duelista</div></div>
+            <div class="rk"><b>Dia 3</b><span>88 RR</span></div>
+          </div>
+          <div class="p">
+            <div class="emblem">A2</div>
+            <div><div class="nm">VEX</div><div class="ag">Killjoy · Sentinela</div></div>
+            <div class="rk"><b>Asc 2</b><span>14 RR</span></div>
+          </div>
+          <div class="p">
+            <div class="emblem">A1</div>
+            <div><div class="nm">GODRINKING67</div><div class="ag">Fade · Iniciador</div></div>
+            <div class="rk"><b>Asc 1</b><span>43 RR</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div class="team-h"><b>Inimigos</b><span>· 05</span><span class="n">TIME B</span></div>
+        <div class="cards">
+          <div class="p">
+            <div class="emblem">A3</div>
+            <div><div class="nm">tenz wannabe</div><div class="ag">Jett · Duelista</div></div>
+            <div class="rk"><b>Asc 3</b><span>71 RR</span></div>
+          </div>
+          <div class="p">
+            <div class="emblem">I2</div>
+            <div><div class="nm">pluto</div><div class="ag">Viper · Controlador</div></div>
+            <div class="rk"><b>Imo 2</b><span>08 RR</span></div>
+          </div>
+          <div class="p">
+            <div class="emblem">D2</div>
+            <div><div class="nm">yoru</div><div class="ag">Chamber · Sentinela</div></div>
+            <div class="rk"><b>Dia 2</b><span>54 RR</span></div>
+          </div>
+          <div class="p">
+            <div class="emblem">A1</div>
+            <div><div class="nm">saint</div><div class="ag">Skye · Iniciador</div></div>
+            <div class="rk"><b>Asc 1</b><span>29 RR</span></div>
+          </div>
+          <div class="p">
+            <div class="emblem">I1</div>
+            <div><div class="nm">neko</div><div class="ag">Neon · Duelista</div></div>
+            <div class="rk"><b>Imo 1</b><span>11 RR</span></div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div class="history">
+      <span class="lab">Rounds</span>
+      <div class="hist">
+        <span class="w">1</span><span>2</span><span class="w">3</span><span class="w">4</span><span>5</span><span>6</span><span class="w">7</span>
+      </div>
+      <span class="eco">4–3 · <b>R7</b></span>
+    </div>
+
+    <div class="summary">
+      <div class="sm"><span>Economia</span><b>4.850</b><em>próximo full buy</em></div>
+      <div class="sm"><span>Leitura</span><b>+2</b><em>rounds a favor</em></div>
+      <div class="sm"><span>Spike</span><b>B</b><em>plantado 0:42</em></div>
+    </div>
+
+    <footer class="foot"><span><b>●</b> Riot conectado · BR-SP · 32 ms</span><span>11/12 elos · cache local</span></footer>
+  </main>
+
+  <aside class="theme">
+    <div class="theme-head"><h2>Tema</h2><span class="x">✕</span></div>
+    <div class="theme-sub">Personalizar aparência</div>
+
+    <div class="sec">
+      <div class="sec-t">Presets <span>4</span></div>
+      <div class="presets">
+        <div class="preset"><div class="bars"><i></i><i></i><i></i><i></i></div><div class="pl"><b>MONO</b><span>○</span></div></div>
+        <div class="preset"><div class="bars"><i></i><i></i><i></i><i></i></div><div class="pl"><b>INK</b><span>○</span></div></div>
+        <div class="preset on"><div class="bars"><i></i><i></i><i></i><i></i></div><div class="pl"><b>NOIR</b><span>●</span></div></div>
+        <div class="preset"><div class="bars"><i></i><i></i><i></i><i></i></div><div class="pl"><b>PAPER</b><span>○</span></div></div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-t">Acento <span>mono</span></div>
+      <div class="swatches">
+        <div class="sw on" style="background:#f5f5f4"></div>
+        <div class="sw" style="background:#d4d4d8"></div>
+        <div class="sw" style="background:#a1a1aa"></div>
+        <div class="sw" style="background:#71717a"></div>
+        <div class="sw custom">+</div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-t">Fundo</div>
+      <div class="seg"><button class="on">Sólido</button><button>Grão</button><button>Halftone</button></div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-t">Ajustes finos</div>
+      <div class="slider">
+        <label>Densidade</label>
+        <div class="track"><i style="width:38%"></i><b style="left:38%"></b></div>
+        <output>38</output>
+      </div>
+      <div class="slider">
+        <label>Cantos</label>
+        <div class="track"><i style="width:50%"></i><b style="left:50%"></b></div>
+        <output>09</output>
+      </div>
+      <div class="slider">
+        <label>Vidro / blur</label>
+        <div class="track"><i style="width:22%"></i><b style="left:22%"></b></div>
+        <output>22</output>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-t">Tipografia</div>
+      <div class="seg"><button class="on">Geist</button><button>Serif</button><button>Mono</button></div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-t">Interface</div>
+      <div class="seg"><button class="on">100%</button><button>110%</button><button>125%</button></div>
+      <div class="toggle-row"><span>Animar transições</span><i class="tg on"></i></div>
+      <div class="toggle-row"><span>HUD sobre o jogo</span><i class="tg"></i></div>
+    </div>
+
+    <div class="theme-foot">
+      <button class="apply">Aplicar tema</button>
+      <div class="export"><u>Salvar preset</u> · exportar .json</div>
+    </div>
+  </aside>
+</div>
+</body>
+</html>

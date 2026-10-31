@@ -1,0 +1,29 @@
+[package]
+name = "crymora"
+version = "0.1.0"
+description = "Crymora — companheiro local do Valorant"
+edition = "2021"
+
+[lib]
+name = "crymora_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = ["tray-icon"] }
+tauri-plugin-notification = "2"
+tauri-plugin-opener = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+futures-util = "0.3"
+tokio = { version = "1", features = ["time", "sync", "macros"] }
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+base64 = "0.22"
+# mesmo crate que o binário original usava (evidência: caminho no .rdata)
+discord-rich-presence = "0.2.5"
+
+[profile.release]
+lto = true
+strip = true
