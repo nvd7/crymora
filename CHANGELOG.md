@@ -32,7 +32,7 @@ Primeira release pública do Crymora.
 ### Corrigido
 
 - Nick próprio e cache de amigos agora são refeitos ao trocar de conta, mesmo quando a sessão anterior cai para “offline” no meio da troca.
-- Roster do pré-jogo agora completa o time inimigo lendo os puuids registrados no `ShooterGame.log`, já que o HTTP do Riot entrega apenas o time aliado.
+- Roster do pré-jogo agora completa o time inimigo pelo endpoint `loadouts` (que devolve o `Subject` dos 10 jogadores), já que o payload do Riot entrega apenas o time aliado. O `ShooterGame.log` fica como reserva e passou a ancorar na primeira consulta da partida, para não perder os inimigos no fim do agent-select.
 - Puuid de jogadores agora usa `PlayerIdentity.Subject` quando o `Subject` superior vem nulo ou vazio.
 - Rank para nick tampado usa `SeasonalBadgeInfo.Rank`; jogadores sem elo aparecem como “Unranked”.
 - Nível 0 de presença offline não é mais exibido como nível real.
