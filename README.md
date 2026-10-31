@@ -1,107 +1,336 @@
+<div align="center">
+
+<img src="docs/assets/logo.png" alt="Logo do Crymora" width="132" />
+
 # Crymora
 
-Companheiro local do Valorant — rebuild próprio (fase 2). O backend Rust
-foi escrito do zero com base na engenharia reversa do binário original
-(evidência documentada nos cabeçalhos de `src-tauri/src/*.rs`).
+**Seu companheiro local de Valorant.**  
+Partida, amigos, tracker e ajustes em uma interface rápida, limpa e somente leitura.
 
-Conexões externas: **só** Riot (API local + glz/pd) e valorant-api.com
-(CDN público de ícones). Sem backend próprio, sem telemetria, sem store.
+[![Última release](https://img.shields.io/github/v/release/nvd7/crymora?style=flat-square&label=release)](https://github.com/nvd7/crymora/releases/latest)
+[![Plataforma](https://img.shields.io/badge/platform-Windows%2010%2F11-0078D4?style=flat-square&logo=windows&logoColor=white)](#instalação)
+[![Rust](https://img.shields.io/badge/Rust-2021-000000?style=flat-square&logo=rust&logoColor=white)](https://www.rust-lang.org/)
+[![Tauri](https://img.shields.io/badge/Tauri-2-24C8DB?style=flat-square&logo=tauri&logoColor=white)](https://tauri.app/)
+[![Licença](https://img.shields.io/github/license/nvd7/crymora?style=flat-square)](LICENSE)
 
-## Estrutura
+[Instalar](#instalação) · [Recursos](#recursos) · [Como funciona](#como-funciona) · [Arquitetura](docs/ARCHITECTURE.md) · [Compilar](#compilar-do-código-fonte) · [FAQ](#perguntas-frequentes)
 
+</div>
+
+![Tela inicial do Crymora](docs/assets/home.png)
+
+## Sobre
+
+O Crymora é um aplicativo desktop para Windows que reúne, em um só lugar, o que você precisa saber antes e durante uma partida de Valorant: os dois times no pré-jogo, seus amigos online, o perfil completo de qualquer Riot ID e ajustes de aparência e comportamento.
+
+Ele conversa **apenas** com o Riot Client instalado na sua máquina e com serviços públicos da Riot. Não existe backend próprio, telemetria, conta na nuvem ou coleta de dados. Tudo fica no seu computador.
+
+> **Status:** beta público (`v0.1.0`). A interface e o backend são estáveis para uso diário, mas o projeto ainda está em evolução.
+
+> [!WARNING]
+> **Aviso da Riot Games — leia antes de usar.**  
+> O Crymora não é afiliado, endossado ou aprovado pela Riot Games. Ele utiliza APIs locais não oficiais do Riot Client, em modo somente leitura. A Riot não mantém uma lista pública de aplicativos seguros e não garante aplicativos de terceiros.  
+> **Esta versão mostra os inimigos já no pré-jogo, com rank e nível.** A Riot classifica “scouting” — consultar estatísticas de adversários antes da partida — como uso **não aprovado** e afirma que aplicativos não autorizados que obtêm informações ocultas do cliente podem resultar em banimento. **Use por sua conta e risco e não compartilhe com quem não aceitou esse risco.**  
+> O Crymora **não é um cheat**: não lê a memória do jogo, não injeta código, não cria overlay, não automatiza entrada e não altera arquivos do jogo.
+
+## Recursos
+
+### Início
+
+- Visão geral da sessão: Riot Client conectado, amigos online e partida atual.
+- Atalhos para partida, amigos, busca de jogador e ajustes.
+- Atualização imediata ao voltar o foco para o app (Alt+Tab).
+
+### Partida
+
+- **Pré-jogo com os dois times visíveis**, incluindo nick, rank e nível dos inimigos.
+- Roster completo durante a partida, com aliados e adversários.
+- Mapa, modo, placar ao vivo e indicação de party.
+- Espera inteligente pelos elos: a tela só monta o roster quando os ranks estão confirmados (ou libera em até 5 s, com o que estiver disponível).
+
+### Amigos
+
+- Lista online primeiro, direto da presença do cliente do Valorant.
+- Status, atividade, rank e nível quando disponíveis.
+- Fallback de avatar por iniciais para amigos sem card ou sem nível conhecido — sem inventar nível 0.
+- Detalhes do jogador em modal, com atalho para o perfil público.
+
+### Tracker
+
+- Busca local por **Riot ID** (`Nome#TAG`), com sugestões de amigos e jogadores vistos em partidas recentes.
+- Perfil completo: rank atual e RR, pico de carreira, pico do ato, vitórias/derrotas do ato, ato anterior, leaderboard, partidas na carreira e últimos resultados.
+- O pico de carreira é calculado a partir do histórico de atos e conferido contra o tracker.gg.
+- Fallback externo para abrir qualquer Riot ID no tracker.gg.
+
+### Ajustes
+
+- Tema, cor de destaque, densidade, animações e efeitos de fundo.
+- Idioma (português e inglês), iniciar com o Windows e alertas de partida.
+- Presença no Discord (opcional, desligada por padrão).
+- Controles de privacidade e segurança visíveis no próprio app.
+
+### Extras
+
+- Ícone de bandeja com menu nativo e comportamento “fechar para a bandeja”.
+- Menu de contexto com configurações, idioma, recarregar, minimizar e sair.
+- Instalador por usuário, sem necessidade de administrador.
+- Troca de conta detectada pelo puuid: nick, amigos e cache são refeitos sem reiniciar o app.
+
+## Segurança e privacidade
+
+O Crymora foi desenhado para ser um **leitor passivo** do ecossistema local do Valorant.
+
+| Garantia | Como é aplicada |
+| --- | --- |
+| Somente leitura | Apenas APIs locais do Riot Client e leitura do `ShooterGame.log` |
+| Sem memória do jogo | Nenhum acesso a `ReadProcessMemory` ou similares |
+| Sem injeção ou hooks | Nenhuma DLL, thread remota ou interceptação |
+| Sem overlay | A janela é um app desktop comum, fora do jogo |
+| Sem automação | Nenhum input sintético ou macro |
+| Sem alteração do jogo | Nenhum arquivo do Valorant é modificado |
+| Sem telemetria | Nenhum servidor próprio, analytics ou rastreamento |
+| Dados locais | Configurações e logs ficam em `%APPDATA%\crymora` |
+| Links externos | Apenas `tracker.gg` e `twitch.tv` (HTTPS), validados no backend |
+| Superfície mínima | CSP restritiva, sem `opener` para a página e whitelist de settings |
+
+Detalhes completos em [docs/PRIVACY.md](docs/PRIVACY.md) e [SECURITY.md](SECURITY.md).
+
+## Instalação
+
+### Requisitos
+
+- Windows 10 ou 11, 64 bits.
+- WebView2 Runtime (já incluído no Windows 11; no Windows 10 pode ser instalado pela Microsoft).
+- Riot Client e Valorant instalados para o app mostrar partidas e amigos.
+
+### Passos
+
+1. Baixe o instalador mais recente em [**Releases**](https://github.com/nvd7/crymora/releases/latest):
+
+   ```text
+   Crymora_0.1.0_x64-setup.exe
+   ```
+
+2. Confira o SHA-256 publicado em [`builds/final/SHA256SUMS.txt`](builds/final/SHA256SUMS.txt):
+
+   ```powershell
+   Get-FileHash .\Crymora_0.1.0_x64-setup.exe -Algorithm SHA256
+   ```
+
+3. Execute o instalador. Ele instala **somente para o usuário atual**, em `%LOCALAPPDATA%\Crymora`, sem pedir administrador.
+4. Abra o Crymora pelo Menu Iniciar ou pelo atalho criado.
+
+> [!NOTE]
+> O executável **não é assinado digitalmente** (não há certificado de code signing). Na primeira execução, o Windows SmartScreen pode exibir um aviso: clique em **Mais informações → Executar assim mesmo**. O código-fonte completo está neste repositório para auditoria.
+
+Para desinstalar: **Configurações → Aplicativos → Crymora → Desinstalar**, ou execute `%LOCALAPPDATA%\Crymora\uninstall.exe`.
+
+## Como funciona
+
+```text
+┌──────────────────────────────┐
+│ Riot Client / Valorant       │
+│  • lockfile local            │
+│  • APIs glz / pd             │
+│  • ShooterGame.log           │
+└──────────────┬───────────────┘
+               │ somente leitura
+               ▼
+┌──────────────────────────────┐
+│ Backend Rust (Tauri 2)       │
+│  • descoberta e autenticação │
+│  • polling e cache           │
+│  • normalização do roster    │
+└──────────────┬───────────────┘
+               │ IPC
+               ▼
+┌──────────────────────────────┐
+│ UI estática (HTML/CSS/JS)    │
+│  Home · Partida · Amigos     │
+│  Tracker · Ajustes           │
+└──────────────────────────────┘
 ```
+
+1. O backend encontra o Riot Client pelo lockfile local e usa o token da sessão para consultar as APIs do próprio Riot.
+2. Um poller atualiza presenças, partida e elos em intervalos curtos; ao recuperar o foco, a UI pede uma atualização imediata.
+3. No pré-jogo, o HTTP do Riot entrega apenas o time aliado. O Crymora completa os inimigos lendo os puuids que o cliente do jogo registra no `ShooterGame.log` e enriquece cada um com nick e rank via PD.
+4. A UI recebe um roster normalizado e renderiza os dois times, sem acessar nada diretamente.
+
+Mais detalhes em [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+
+## Compilar do código-fonte
+
+### Pré-requisitos
+
+- [Rust](https://rustup.rs/) com toolchain MSVC e Visual Studio C++ Build Tools.
+- [Tauri CLI 2](https://tauri.app/start/):
+  ```powershell
+  cargo install tauri-cli --version "^2"
+  ```
+- WebView2 Runtime.
+- NSIS é baixado automaticamente pelo Tauri no primeiro bundle.
+
+O frontend é estático (`ui/`), então **não há npm, Node ou etapa de build web**.
+
+### Rodar em modo de desenvolvimento
+
+```powershell
+git clone https://github.com/nvd7/crymora.git
+cd crymora\src-tauri
+cargo run
+```
+
+### Testes
+
+```powershell
+cd crymora\src-tauri
+cargo test --lib
+```
+
+### Gerar o instalador
+
+```powershell
+cd crymora\src-tauri
+cargo tauri build
+```
+
+Saída esperada:
+
+```text
+src-tauri\target\release\bundle\nsis\Crymora_0.1.0_x64-setup.exe
+```
+
+## Estrutura do projeto
+
+```text
 crymora/
-  ui/               frontend (mesma UI da edição patcheada)
-    index.html
-    app.js          ← copiar de ascend-mod\newui\
-    styles.css      ← copiar de ascend-mod\newui\
-    assets/         ← fontes woff2 (copiar, ver abaixo)
-  src-tauri/        backend Rust
-    tauri.conf.json
-    capabilities/default.json
-    src/
-      main.rs       entrada
-      lib.rs        comandos IPC + boot
-      settings.rs   settings.json
-      discord_rp.rs presence do Discord
-      riot/         lockfile, região, HTTP, poll loop
+├─ ui/                    frontend estático (HTML, CSS e JS puro)
+│  ├─ index.html
+│  ├─ app.js
+│  ├─ styles.css
+│  └─ assets/             fontes e logo
+├─ src-tauri/             backend Rust + configuração do Tauri
+│  ├─ src/
+│  │  ├─ lib.rs           comandos IPC e bootstrap
+│  │  ├─ settings.rs      settings.json com whitelist
+│  │  ├─ discord_rp.rs    presença opcional no Discord
+│  │  └─ riot/            lockfile, região, HTTP, poller e roster
+│  ├─ capabilities/
+│  ├─ icons/
+│  ├─ tauri.conf.json
+│  └─ Cargo.toml
+├─ docs/                  arquitetura, privacidade e assets
+├─ builds/final/          instalador e checksums publicados
+├─ design/                identidade visual e mockups
+├─ tools/                 scripts auxiliares (ícone e sondagem)
+├─ .github/               templates de issue/PR e CI
+├─ CHANGELOG.md
+├─ CONTRIBUTING.md
+├─ LICENSE
+├─ SECURITY.md
+└─ README.md
 ```
 
-## Pré-requisitos (uma vez só)
+## Fontes de dados
 
-1. **Rust + MSVC** — https://rustup.rs (instala o Visual Studio C++
-   Build Tools quando pedir, marque "Desktop development with C++").
-2. **Tauri CLI**:
-   ```
-   cargo install tauri-cli --version "^2"
-   ```
-3. **WebView2** — já vem no Windows 11 (o app original usava o mesmo).
+| Fonte | Uso | Acesso |
+| --- | --- | --- |
+| Lockfile do Riot Client | Porta e token da sessão local | Leitura local |
+| APIs locais `glz` / `pd` | Partida, roster, elos, nomes e presenças | Leitura autenticada com o token local |
+| `ShooterGame.log` | Fallback dos puuids inimigos no pré-jogo | Leitura local |
+| `valorant-api.com` | Ícones de ranks, agentes e mapas | HTTPS público |
+| `tracker.gg` / `twitch.tv` | Perfis e transmissões externas | Apenas links abertos no navegador |
 
-## Preparar o frontend (cmd)
+## Roadmap
 
-```
-copy D:\pasta\ascend-mod\newui\app.js    D:\pasta\crymora\ui\app.js
-copy D:\pasta\ascend-mod\newui\styles.css D:\pasta\crymora\ui\styles.css
-mkdir D:\pasta\crymora\ui\assets 2>nul
-copy D:\pasta\ascend-mod\extracted\assets\geist-latin-wght-normal-BgDaEnEv.woff2  D:\pasta\crymora\ui\assets\
-copy D:\pasta\ascend-mod\extracted\assets\geist-mono-latin-wght-normal-B_7UjwxQ.woff2 D:\pasta\crymora\ui\assets\
-```
+- [x] Home, Partida, Amigos, Tracker e Ajustes.
+- [x] Pré-jogo com os dois times, ranks e níveis.
+- [x] Atualização imediata ao recuperar o foco.
+- [x] Troca de conta sem reiniciar.
+- [x] Fallback dos inimigos pelo log do jogo.
+- [ ] Histórico das últimas partidas no Tracker.
+- [ ] Mais idiomas além de português e inglês.
+- [ ] Assinatura de código do instalador.
+- [ ] Testes de integração com o Riot Client em CI.
 
-## Discord presence (opcional, uma vez só)
+## Perguntas frequentes
 
-1. https://discord.com/developers/applications → **New Application**
-   → nomeie **Crymora** (é esse nome que aparece no Discord).
-2. Rich Presence → copie o **Application ID**.
-3. Cole em `src-tauri\src\discord_rp.rs`, na constante `DISCORD_APP_ID`
-   (trocando `COLE_SEU_APP_ID_AQUI`).
-4. Na página do app: Assets → envie uma imagem chamada `crymora_logo`
-   (o logo que aparecerá na presence).
+<details>
+<summary><strong>O Crymora é um cheat?</strong></summary>
 
-O toggle fica nas configurações do Crymora (discordRpEnabled), desligado
-por padrão. Formato: `mapa · modo` + placar ao vivo.
+Não. Ele não lê a memória do jogo, não injeta código, não cria overlay, não automatiza input e não altera arquivos do Valorant. É um leitor passivo de APIs locais e logs.
 
-## Ícone do app
+</details>
 
-Gerado por script próprio (sem depender do tauri-cli):
-```
-python tools\make_icon.py
-```
-Isso escreve `src-tauri\icons\icon.ico` (o `tauri.conf.json` aponta pra
-ele — é o ícone do exe, da janela e da bandeja) e `icons\icon.png`
-(1024×1024 — reutilize como asset `crymora_logo` do Discord).
+<details>
+<summary><strong>Por que o Windows mostra um aviso ao instalar?</strong></summary>
 
-## Rodar / compilar
+Porque o instalador ainda não tem assinatura digital. Isso é comum em projetos independentes. O código-fonte está público e o SHA-256 do binário é publicado junto da release.
 
-O frontend é estático (`frontendDist: ../ui`), então **não precisa do
-tauri-cli** — o cargo resolve tudo:
+</details>
 
-```
-cd /d D:\pasta\crymora\src-tauri
-cargo run             ← testar
-cargo build --release ← exe final em target\release\crymora.exe
-```
+<details>
+<summary><strong>Preciso deixar o Valorant aberto?</strong></summary>
 
-Instalador NSIS (opcional, exige tauri-cli): `cargo install tauri-cli
---version "^2"` e `cargo tauri build`.
+Sim. O Crymora usa a sessão local do Riot Client. Sem o cliente aberto, ele mostra o estado offline e não consegue listar partidas ou amigos.
 
-## Notas honestas
+</details>
 
-- **Menu de contexto (botão direito na janela)**: Configurações, Idioma,
-  Recarregar, Minimizar e **Sair do Crymora**. O `quit_app` existe no
-  binário original (era o "Quit" do TrayMenu deles) e no rebuild — nos
-  dois, "Sair" encerra o processo de verdade.
-- **Bandeja**: o rebuild tem ícone de bandeja com menu nativo
-  (Abrir Crymora / Sair do Crymora); o X da janela esconde pra bandeja
-  (mesmo comportamento do original — "hidden-to-tray"). Sair de verdade
-  = menu da bandeja ou quit_app.
-- No exe patcheado, o popup da bandeja (janela "tray-menu") carrega a
-  UI nova: menu compacto com status do Riot, toggle de presence,
-  Abrir e Sair — comandos originais reaproveitados.
+<details>
+<summary><strong>Meus dados são enviados para algum servidor?</strong></summary>
 
-- **form[] (últimos 5 resultados)**: ainda não implementado no rebuild
-  (precisa do match-history do pd + detalhes por partida). A UI degrada
-  bem: a linha simplesmente não aparece. Está marcado como TODO.
-- O `tracker_proxy` continua stub (fase 2: webview escondida pro
-  tracker.gg). Botões do Twitch degradam graciosamente.
-- Binário sem assinatura digital → Smart Screen mostra aviso na
-  primeira execução (igual qualquer app novo sem certificado).
+Não. O Crymora não tem backend próprio nem telemetria. As únicas conexões são com o Riot Client local, endpoints do próprio Riot e o CDN público `valorant-api.com` para ícones.
+
+</details>
+
+<details>
+<summary><strong>Por que os inimigos aparecem no pré-jogo?</strong></summary>
+
+Porque o app completa o roster com os puuids registrados pelo cliente do jogo no `ShooterGame.log`. Isso é o que a Riot chama de “scouting” e **não é um uso aprovado**. Leia o aviso no topo deste README e use por sua conta e risco.
+
+</details>
+
+<details>
+<summary><strong>Amigos sem card ou sem nível aparecem com nível 0?</strong></summary>
+
+Não. Quando o nível ou o card não é conhecido, o app usa um avatar de iniciais e simplesmente omite o nível, em vez de mostrar um valor falso.
+
+</details>
+
+<details>
+<summary><strong>O pico de carreira bate com o tracker.gg?</strong></summary>
+
+Sim. O pico é calculado a partir do histórico de atos retornado pelo PD e validado contra o tracker.gg para as contas testadas.
+
+</details>
+
+## Contribuindo
+
+Contribuições são bem-vindas. Antes de abrir um PR, leia [CONTRIBUTING.md](CONTRIBUTING.md) e o [Código de Conduta](CODE_OF_CONDUCT.md).
+
+Princípio inegociável: **o Crymora permanece somente leitura**. PRs que adicionem leitura de memória, injeção, hooks, overlay, automação de input ou qualquer forma de contornar proteções do jogo serão recusados.
+
+## Licença
+
+Distribuído sob a licença [MIT](LICENSE). © 2026 nvd7.
+
+## Créditos
+
+- Desenvolvimento e identidade visual: [nvd7](https://github.com/nvd7).
+- Ícones de ranks, agentes e mapas: [valorant-api.com](https://valorant-api.com).
+- Tipografia: [Geist](https://vercel.com/font) (Vercel).
+
+---
+
+<div align="center">
+
+**made by nvd7**
+
+Crymora não é afiliado, endossado ou patrocinado pela Riot Games.  
+VALORANT e Riot Games são marcas registradas da Riot Games, Inc.
+
+</div>
+
+## English
+
+Crymora is a local, read-only Valorant companion for Windows. It shows both teams in pre-game, friends, a Riot ID tracker and appearance settings in a fast desktop UI built with Rust and Tauri 2. It never reads game memory, injects code, creates overlays or automates input. No telemetry, no backend, no account. See the Riot Games policy warning above before using the pre-game enemy roster. Licensed under MIT.

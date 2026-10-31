@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Dúvidas e discussões
+    url: https://github.com/nvd7/crymora/discussions
+    about: Tire dúvidas, compartilhe ideias e converse com a comunidade.
+  - name: Vulnerabilidade de segurança
+    url: https://github.com/nvd7/crymora/security/advisories/new
+    about: Reporte vulnerabilidades de forma privada. Não abra uma issue pública.

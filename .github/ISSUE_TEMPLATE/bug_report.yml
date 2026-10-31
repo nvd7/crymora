@@ -1,0 +1,100 @@
+name: Bug report
+description: Reporte um comportamento inesperado no Crymora
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Obrigado por reportar! Antes de continuar, confira se já existe uma issue semelhante.
+
+        **Não inclua tokens, Riot ID, puuid ou logs sem redigir.** Para vulnerabilidades de segurança, use a aba **Security → Report a vulnerability**.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Descrição
+      description: O que aconteceu?
+      placeholder: Descreva o comportamento observado de forma objetiva.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Passos para reproduzir
+      description: Como podemos reproduzir o problema?
+      placeholder: |
+        1. Abra o Crymora
+        2. Entre no pré-jogo
+        3. ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Comportamento esperado
+      placeholder: O que deveria ter acontecido?
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Comportamento observado
+      placeholder: O que aconteceu de fato? Inclua mensagens de erro, se houver.
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Versão do Crymora
+      placeholder: "0.1.0"
+    validations:
+      required: true
+
+  - type: input
+    id: windows
+    attributes:
+      label: Versão do Windows
+      placeholder: "Windows 11 24H2 (build 26100)"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Área afetada
+      options:
+        - Home
+        - Partida / pré-jogo
+        - Amigos
+        - Tracker
+        - Ajustes
+        - Instalação / atualização
+        - Outro
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs (opcional)
+      description: Cole apenas as linhas relevantes de `%APPDATA%\crymora\debug.log`, com dados pessoais removidos.
+      render: text
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      options:
+        - label: Removi Riot ID, puuid, tokens e outros dados pessoais dos logs.
+          required: true
+        - label: Confirmei que o problema não é uma vulnerabilidade de segurança.
+          required: true
+        - label: Li o aviso da Riot Games no README.
+          required: true

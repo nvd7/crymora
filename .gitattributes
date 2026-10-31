@@ -1,0 +1,11 @@
+# Normaliza fins de linha para texto e preserva binários
+* text=auto eol=lf
+
+*.exe binary
+*.ico binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.woff2 binary
+*.ttf binary
+*.otf binary

@@ -1,0 +1,58 @@
+name: Feature request
+description: Sugira uma melhoria para o Crymora
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Obrigado pela sugestão! Descreva o problema que a ideia resolve, não apenas a solução proposta.
+
+        O Crymora é um leitor passivo. Pedidos que envolvam memória do jogo, injeção, overlay ou automação não serão aceitos.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Qual problema isso resolve?
+      placeholder: "Hoje eu preciso ... e isso é ruim porque ..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Solução proposta
+      placeholder: Descreva como você imagina a funcionalidade.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternativas consideradas
+      placeholder: Outras formas de resolver o mesmo problema.
+    validations:
+      required: false
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Área
+      options:
+        - Home
+        - Partida / pré-jogo
+        - Amigos
+        - Tracker
+        - Ajustes
+        - Acessibilidade
+        - Outro
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: constraints
+    attributes:
+      label: Restrições do projeto
+      options:
+        - label: Entendo que o Crymora deve permanecer somente leitura, sem memória do jogo, injeção, overlay ou automação.
+          required: true
