@@ -20,7 +20,7 @@ serde_json = "1"
 futures-util = "0.3"
 tokio = { version = "1", features = ["time", "sync", "macros"] }
 reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
-base64 = "0.22"
+base64 = "0.23"
 # mesmo crate que o binário original usava (evidência: caminho no .rdata)
 discord-rich-presence = "0.2.5"
 
