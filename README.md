@@ -8,6 +8,7 @@
 Partida, amigos, tracker e ajustes em uma interface rápida, limpa e somente leitura.
 
 [![Última release](https://img.shields.io/github/v/release/nvd7/crymora?style=flat-square&label=release)](https://github.com/nvd7/crymora/releases/latest)
+[![CI](https://github.com/nvd7/crymora/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/nvd7/crymora/actions/workflows/ci.yml)
 [![Plataforma](https://img.shields.io/badge/platform-Windows%2010%2F11-0078D4?style=flat-square&logo=windows&logoColor=white)](#instalação)
 [![Rust](https://img.shields.io/badge/Rust-2021-000000?style=flat-square&logo=rust&logoColor=white)](https://www.rust-lang.org/)
 [![Tauri](https://img.shields.io/badge/Tauri-2-24C8DB?style=flat-square&logo=tauri&logoColor=white)](https://tauri.app/)
