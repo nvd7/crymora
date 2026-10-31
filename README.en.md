@@ -84,7 +84,7 @@ Crymora is designed to be a **passive reader** of the local Valorant ecosystem.
 
 | Guarantee | How it is enforced |
 | --- | --- |
-| Read-only | Local Riot Client APIs and `ShooterGame.log` reading only |
+| Read-only | Local Riot Client APIs (including pre-game `loadouts`) and `ShooterGame.log` reading only |
 | No game memory | No `ReadProcessMemory` or similar |
 | No injection or hooks | No DLLs, remote threads or interception |
 | No overlay | A regular desktop window, outside the game |

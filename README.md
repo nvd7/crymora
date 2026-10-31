@@ -84,7 +84,7 @@ O Crymora foi desenhado para ser um **leitor passivo** do ecossistema local do V
 
 | Garantia | Como é aplicada |
 | --- | --- |
-| Somente leitura | Apenas APIs locais do Riot Client e leitura do `ShooterGame.log` |
+| Somente leitura | Apenas APIs locais do Riot Client (incluindo `loadouts`) e leitura do `ShooterGame.log` |
 | Sem memória do jogo | Nenhum acesso a `ReadProcessMemory` ou similares |
 | Sem injeção ou hooks | Nenhuma DLL, thread remota ou interceptação |
 | Sem overlay | A janela é um app desktop comum, fora do jogo |
