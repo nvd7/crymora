@@ -1106,19 +1106,26 @@ async fn tick(
         "selfName": self_name,
     });
 
-    // presence: "mapa · modo — placar" (formato pedido pelo usuário)
-    let mut details = String::new();
-    let mut rp_state = String::new();
-    if phase != "MENUS" {
-        let map = display(&me.map_key, MAP_LABELS);
-        let mode = display(&me.queue_id, MODE_LABELS);
-        details = [map, mode].into_iter().filter(|s| !s.is_empty()).collect::<Vec<_>>().join(" · ");
-        if phase == "INGAME" {
-            if let (Some(a), Some(b)) = (me.score_ally, me.score_enemy) {
-                rp_state = format!("{a}–{b}");
-            }
+    // presence: "mapa · modo" + estado (placar/pré-jogo) — formato pedido
+    let (details, rp_state) = match phase {
+        "PREGAME" => {
+            let map = display(&me.map_key, MAP_LABELS);
+            let mode = display(&me.queue_id, MODE_LABELS);
+            let details = [map, mode].into_iter().filter(|s| !s.is_empty()).collect::<Vec<_>>().join(" · ");
+            (details, "Pré-jogo".to_string())
         }
-    }
+        "INGAME" => {
+            let map = display(&me.map_key, MAP_LABELS);
+            let mode = display(&me.queue_id, MODE_LABELS);
+            let details = [map, mode].into_iter().filter(|s| !s.is_empty()).collect::<Vec<_>>().join(" · ");
+            let state = match (me.score_ally, me.score_enemy) {
+                (Some(a), Some(b)) => format!("{a} – {b}"),
+                _ => "Em partida".to_string(),
+            };
+            (details, state)
+        }
+        _ => ("No menu".to_string(), "Aguardando partida".to_string()),
+    };
 
     let (pub_phase, pub_roster) = if hold_pregame {
         ("MENUS", None)
