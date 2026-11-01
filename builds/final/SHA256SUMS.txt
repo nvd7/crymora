@@ -1,1 +1,1 @@
-6311324e8d4bec87ec254bf776f919d8ed1d37a9ca09a55ca0fab4eecef85e83  Crymora_0.1.0_x64-setup.exe
+eb30513e29c3fd8fbd7c28f71a3fa1609bad725ca473c8119e5c8617e4289fb3  Crymora_0.1.1_x64-setup.exe

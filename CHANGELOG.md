@@ -12,6 +12,22 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 - Assinatura de código do instalador.
 - Testes de integração com o Riot Client em CI.
 
+## [0.1.1] - 2026-11-01
+
+### Adicionado
+
+- Presença no Discord com mapa e modo, placar ao vivo (`7 – 5`), tempo desde a abertura do Crymora, logo do app e botão para o GitHub.
+- Estado "Pré-jogo" durante o agent-select e "Aguardando partida" no menu.
+
+### Alterado
+
+- A presença usa o app ID próprio do Crymora (`1566333446446649374`) e reconecta sozinha quando o Discord abre ou fecha.
+- `tauri-plugin-notification` atualizado para 2.8.0.
+
+### Notas
+
+- O Discord não exibe botões de Rich Presence para a própria conta que transmite a presença. Para ver o botão "GitHub", abra o perfil em outra conta ou peça a um amigo.
+
 ## [0.1.0] - 2026-10-31
 
 Primeira release pública do Crymora.

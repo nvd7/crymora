@@ -62,7 +62,7 @@ Use [Conventional Commits](https://www.conventionalcommits.org/):
 feat: adiciona histórico de partidas no tracker
 fix: corrige nick após troca de conta
 docs: atualiza guia de instalação
-build: atualiza instalador 0.1.0
+build: atualiza instalador 0.1.1
 refactor: simplifica o poller de presenças
 test: cobre fallback de puuid no pré-jogo
 ```

@@ -27,7 +27,7 @@ Crymora is a Windows desktop app that brings together what you need to know befo
 
 It talks **only** to the Riot Client installed on your machine and to public Riot services. There is no custom backend, telemetry, cloud account or data collection. Everything stays on your computer.
 
-> **Status:** first public release (`v0.1.0`). The UI and backend are stable for daily use, and the project continues to evolve.
+> **Status:** current public release (`v0.1.1`). The UI and backend are stable for daily use, and the project continues to evolve.
 
 > [!WARNING]
 > **Riot Games notice — read before using.**  
@@ -68,7 +68,8 @@ It talks **only** to the Riot Client installed on your machine and to public Rio
 
 - Theme, accent color, density, animations and background effects.
 - Language (Portuguese and English), launch on Windows startup and match alerts.
-- Discord Rich Presence (optional, off by default).
+- Discord Rich Presence (optional, off by default): map and mode, live score, session time, logo and a GitHub button.
+- Discord does not show Rich Presence buttons to the account broadcasting the presence; the “GitHub” button appears to friends and other accounts.
 - Privacy and security controls visible in the app.
 
 ### Extras
@@ -109,16 +110,16 @@ Full details in [docs/PRIVACY.md](docs/PRIVACY.md) and [SECURITY.md](SECURITY.md
 
 1. Download the latest installer from [**Releases**](https://github.com/nvd7/crymora/releases/latest):
 
-   [**Download the installer**](https://github.com/nvd7/crymora/releases/latest) · 3.26 MiB
+   [**Download the installer**](https://github.com/nvd7/crymora/releases/latest) · 3.24 MiB
 
    ```text
-   Crymora_0.1.0_x64-setup.exe
+   Crymora_0.1.1_x64-setup.exe
    ```
 
 2. Check the SHA-256 published in [`builds/final/SHA256SUMS.txt`](builds/final/SHA256SUMS.txt):
 
    ```powershell
-   Get-FileHash .\Crymora_0.1.0_x64-setup.exe -Algorithm SHA256
+   Get-FileHash .\Crymora_0.1.1_x64-setup.exe -Algorithm SHA256
    ```
 
 3. Run the installer. It installs **for the current user only**, in `%LOCALAPPDATA%\Crymora`, without asking for administrator rights.
@@ -201,7 +202,7 @@ cargo tauri build
 Expected output:
 
 ```text
-src-tauri\target\release\bundle\nsis\Crymora_0.1.0_x64-setup.exe
+src-tauri\target\release\bundle\nsis\Crymora_0.1.1_x64-setup.exe
 ```
 
 ## Project structure

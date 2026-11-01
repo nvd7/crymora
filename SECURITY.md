@@ -63,4 +63,4 @@ O Crymora é um leitor passivo:
 
 ## Instalador não assinado
 
-O instalador da versão `0.1.0` não possui assinatura de código. O SHA-256 de cada binário é publicado em `builds/final/SHA256SUMS.txt` e na release correspondente. Sempre confira o hash antes de executar.
+O instalador da versão `0.1.1` não possui assinatura de código. O SHA-256 de cada binário é publicado em `builds/final/SHA256SUMS.txt` e na release correspondente. Sempre confira o hash antes de executar.

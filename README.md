@@ -27,7 +27,7 @@ O Crymora é um aplicativo desktop para Windows que reúne, em um só lugar, o q
 
 Ele conversa **apenas** com o Riot Client instalado na sua máquina e com serviços públicos da Riot. Não existe backend próprio, telemetria, conta na nuvem ou coleta de dados. Tudo fica no seu computador.
 
-> **Status:** primeira release pública (`v0.1.0`). A interface e o backend são estáveis para uso diário, e o projeto continua em evolução.
+> **Status:** release pública atual (`v0.1.1`). A interface e o backend são estáveis para uso diário, e o projeto continua em evolução.
 
 > [!WARNING]
 > **Aviso da Riot Games — leia antes de usar.**  
@@ -68,7 +68,8 @@ Ele conversa **apenas** com o Riot Client instalado na sua máquina e com servi�
 
 - Tema, cor de destaque, densidade, animações e efeitos de fundo.
 - Idioma (português e inglês), iniciar com o Windows e alertas de partida.
-- Presença no Discord (opcional, desligada por padrão).
+- Presença no Discord (opcional, desligada por padrão): mapa e modo, placar ao vivo, tempo de sessão, logo e botão para o GitHub.
+- O Discord não mostra botões de Rich Presence para a própria conta que transmite a presença; o botão “GitHub” aparece para amigos e outras contas.
 - Controles de privacidade e segurança visíveis no próprio app.
 
 ### Extras
@@ -109,16 +110,16 @@ Detalhes completos em [docs/PRIVACY.md](docs/PRIVACY.md) e [SECURITY.md](SECURIT
 
 1. Baixe o instalador mais recente em [**Releases**](https://github.com/nvd7/crymora/releases/latest):
 
-   [**Baixar o instalador**](https://github.com/nvd7/crymora/releases/latest) · 3,26 MiB
+   [**Baixar o instalador**](https://github.com/nvd7/crymora/releases/latest) · 3,24 MiB
 
    ```text
-   Crymora_0.1.0_x64-setup.exe
+   Crymora_0.1.1_x64-setup.exe
    ```
 
 2. Confira o SHA-256 publicado em [`builds/final/SHA256SUMS.txt`](builds/final/SHA256SUMS.txt):
 
    ```powershell
-   Get-FileHash .\Crymora_0.1.0_x64-setup.exe -Algorithm SHA256
+   Get-FileHash .\Crymora_0.1.1_x64-setup.exe -Algorithm SHA256
    ```
 
 3. Execute o instalador. Ele instala **somente para o usuário atual**, em `%LOCALAPPDATA%\Crymora`, sem pedir administrador.
@@ -201,7 +202,7 @@ cargo tauri build
 Saída esperada:
 
 ```text
-src-tauri\target\release\bundle\nsis\Crymora_0.1.0_x64-setup.exe
+src-tauri\target\release\bundle\nsis\Crymora_0.1.1_x64-setup.exe
 ```
 
 ## Estrutura do projeto

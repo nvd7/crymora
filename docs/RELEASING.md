@@ -13,8 +13,8 @@ Este é o processo usado para gerar e publicar o instalador do Crymora. Ele exis
 
 A versão fica em dois lugares:
 
-- `src-tauri/Cargo.toml` (`version = "0.1.0"`)
-- `src-tauri/tauri.conf.json` (`"version": "0.1.0"`)
+- `src-tauri/Cargo.toml` (`version = "0.1.1"`)
+- `src-tauri/tauri.conf.json` (`"version": "0.1.1"`)
 
 Mantenha os dois iguais e atualize o `CHANGELOG.md`.
 
@@ -43,7 +43,7 @@ src-tauri\target\release\bundle\nsis\Crymora_<versão>_x64-setup.exe
 ## 4. Calcular o checksum
 
 ```powershell
-$exe = "src-tauri\target\release\bundle\nsis\Crymora_0.1.0_x64-setup.exe"
+$exe = "src-tauri\target\release\bundle\nsis\Crymora_0.1.1_x64-setup.exe"
 (Get-FileHash $exe -Algorithm SHA256).Hash.ToLower()
 (Get-Item $exe).Length
 ```
@@ -62,8 +62,8 @@ Atualize:
 3. Crie a tag e a release:
 
 ```powershell
-git tag v0.1.0
-git push origin v0.1.0
+git tag v0.1.1
+git push origin v0.1.1
 ```
 
 4. Anexe à release:

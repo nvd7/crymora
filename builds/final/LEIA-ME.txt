@@ -1,10 +1,10 @@
-Crymora 0.1.0 — instalador final
+Crymora 0.1.1 — instalador final
 ================================
 
-Arquivo : Crymora_0.1.0_x64-setup.exe
-Tamanho : 3.420.613 bytes (3,26 MiB)
-SHA-256 : 6311324E8D4BEC87EC254BF776F919D8ED1D37A9CA09A55CA0FAB4EECEF85E83
-Gerado  : 31/10/2026 13:08
+Arquivo : Crymora_0.1.1_x64-setup.exe
+Tamanho : 3.400.851 bytes (3,24 MiB)
+SHA-256 : EB30513E29C3FD8FBD7C28F71A3FA1609BAD725CA473C8119E5C8617E4289FB3
+Gerado  : 01/11/2026 03:26
 
 Instalação
 ----------
@@ -17,6 +17,17 @@ Assinatura
 O executável não é assinado digitalmente (não há certificado de code signing).
 O Windows SmartScreen pode exibir um aviso na primeira execução:
 "Mais informações" → "Executar assim mesmo".
+
+Presença no Discord
+-------------------
+- Opcional e desligada por padrão (Ajustes → Presença no Discord).
+- Mostra o mapa e o modo durante o pré-jogo/partida, o placar ao vivo
+  (ex.: 7 – 5), o tempo desde que o Crymora abriu, a logo do app e um
+  botão para o GitHub.
+- O Discord não exibe botões de Rich Presence para a própria conta que
+  transmite a presença. Para ver o botão "GitHub", abra o perfil em outra
+  conta ou peça a um amigo.
+- A conexão é 100% local, pelo pipe do Discord; nada do jogo é lido por aqui.
 
 Segurança
 ---------
@@ -57,6 +68,7 @@ Privacidade
 - Nenhuma telemetria e nenhum servidor próprio: os dados ficam na máquina.
 - Conexões: APIs locais do Riot Client, endpoints do próprio Riot (glz/pd)
   com o token local, e CDN pública valorant-api.com para ícones/mapas.
+- Discord: apenas o pipe local do cliente, quando a presença está ligada.
 - Links externos só abrem tracker.gg e twitch.tv (https).
 
 Observação
@@ -69,4 +81,3 @@ Links
 -----
 Site      : https://nvd7.github.io/crymora/
 Repositório: https://github.com/nvd7/crymora
-
