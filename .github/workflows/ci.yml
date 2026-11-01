@@ -48,10 +48,11 @@ jobs:
       - name: Conferir SHA-256 publicado
         shell: pwsh
         run: |
-          $sums = Get-Content builds/final/SHA256SUMS.txt -Raw
-          $expected = ($sums -split '\s+')[0].ToLower()
-          $actual = (Get-FileHash builds/final/Crymora_0.1.0_x64-setup.exe -Algorithm SHA256).Hash.ToLower()
+          $sums = (Get-Content builds/final/SHA256SUMS.txt -Raw).Trim()
+          $expected, $file = $sums -split '\s+', 2
+          $expected = $expected.ToLower()
+          $actual = (Get-FileHash "builds/final/$file" -Algorithm SHA256).Hash.ToLower()
           if ($actual -ne $expected) {
-            throw "SHA-256 divergente: esperado $expected, obtido $actual"
+            throw "SHA-256 divergente para ${file}: esperado $expected, obtido $actual"
           }
-          Write-Host "SHA-256 confere: $actual"
+          Write-Host "SHA-256 confere: $actual ($file)"
