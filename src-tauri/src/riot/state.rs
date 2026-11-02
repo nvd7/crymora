@@ -31,6 +31,12 @@ const LOG_FRESH_SECS: u64 = 180; // ShooterGame.log escrito há pouco
  * recusar alguma consulta, libera a tela com o que veio. */
 const RANK_WAIT_SECS: i64 = 5;
 
+/* Próprio grupo: o payload da partida não traz PartyID (o Riot removeu),
+ * então a API de party do glz é consultada com TTL. 20 s acompanha
+ * entrada/saída de membros sem 2 requests a cada tick. */
+const PARTY_TTL_SECS: i64 = 20;
+const PARTY_RETRY_SECS: i64 = 30;
+
 pub struct RpInfo {
     pub phase: String,
     pub details: String,
@@ -60,6 +66,12 @@ struct Caches {
     /// vê o pré-jogo depois que todos os elos resolvem (ou no timeout)
     pregame_since: Option<i64>,
     pregame_shown: bool,
+    /// próprio grupo: (partyId, membros, timestamp). O Riot não manda
+    /// `PartyID` no payload da partida; a API de party é a fonte ao vivo.
+    /// TTL curto para acompanhar entrada/saída sem 2 requests por tick.
+    self_party: Option<(String, Vec<String>, i64)>,
+    /// falhou ao consultar a party? não tenta de novo antes disso
+    party_backoff: i64,
 }
 
 fn config_dir(app: &AppHandle) -> PathBuf {
@@ -686,6 +698,101 @@ async fn build_roster(
     }))
 }
 
+/// Próprio grupo (partyId + membros) via glz. O payload da partida não
+/// traz PartyID (o Riot removeu), então esta é a única fonte ao vivo
+/// para marcar quem está no seu grupo — inclusive quem não é amigo.
+async fn self_party(ctx: &Ctx, cache: &mut Caches) -> Option<(String, Vec<String>)> {
+    let now = unix_now();
+    if let Some((id, members, ts)) = &cache.self_party {
+        if now - *ts < PARTY_TTL_SECS {
+            return Some((id.clone(), members.clone()));
+        }
+    }
+    if cache.party_backoff > now {
+        return cache
+            .self_party
+            .as_ref()
+            .map(|(id, members, _)| (id.clone(), members.clone()));
+    }
+    let player = match ctx
+        .glz(&format!("/parties/v1/players/{}", ctx.local.puuid))
+        .await
+    {
+        Ok(v) => v,
+        Err(e) => {
+            clog!("[crymora] party player erro: {e} — retry em {PARTY_RETRY_SECS}s");
+            cache.party_backoff = now + PARTY_RETRY_SECS;
+            return cache
+                .self_party
+                .as_ref()
+                .map(|(id, members, _)| (id.clone(), members.clone()));
+        }
+    };
+    let Some(id) = player["CurrentPartyID"].as_str().filter(|s| !s.is_empty()) else {
+        /* saiu do grupo (ou solo): não deixa o grupo antigo marcado */
+        cache.self_party = None;
+        cache.party_backoff = now + PARTY_TTL_SECS;
+        return None;
+    };
+    let party = match ctx.glz(&format!("/parties/v1/parties/{id}")).await {
+        Ok(v) => v,
+        Err(e) => {
+            clog!("[crymora] party erro: {e} — retry em {PARTY_RETRY_SECS}s");
+            cache.party_backoff = now + PARTY_RETRY_SECS;
+            return None;
+        }
+    };
+    let members: Vec<String> = party["Members"]
+        .as_array()
+        .map(|list| {
+            list.iter()
+                .filter_map(|m| m["Subject"].as_str())
+                .filter(|s| !s.is_empty())
+                .map(String::from)
+                .collect()
+        })
+        .unwrap_or_default();
+    if members.is_empty() {
+        cache.party_backoff = now + PARTY_RETRY_SECS;
+        return None;
+    }
+    cache.party_backoff = 0;
+    cache.self_party = Some((id.to_string(), members.clone(), now));
+    Some((id.to_string(), members))
+}
+
+/// Injeta `partyId`/`partySize` no roster. Preferência:
+///   1. próprio grupo (API de party) — cobre membros que não são amigos;
+///   2. presença do amigo (partyId do packedData) — cobre amigos no lobby.
+/// Ninguém além dessas fontes é marcado: o payload da partida não tem
+/// PartyID, então inimigos desconhecidos ficam sem grupo (não inventamos).
+fn inject_parties(
+    roster: &mut Value,
+    own: Option<&(String, Vec<String>)>,
+    friends: &HashMap<String, (String, i64)>,
+) {
+    let Some(obj) = roster.as_object_mut() else { return };
+    for key in ["allies", "enemyTeam"] {
+        let Some(list) = obj.get_mut(key).and_then(|v| v.as_array_mut()) else { continue };
+        for p in list {
+            let Some(puuid) = p["puuid"].as_str().map(String::from) else { continue };
+            if let Some((pid, members)) = own {
+                if members.iter().any(|m| m == &puuid) {
+                    p["partyId"] = json!(pid);
+                    p["partySize"] = json!(members.len());
+                    continue;
+                }
+            }
+            if p["partyId"].as_str().map(|s| s.is_empty()).unwrap_or(true) {
+                if let Some((pid, size)) = friends.get(&puuid) {
+                    p["partyId"] = json!(pid);
+                    p["partySize"] = json!(size);
+                }
+            }
+        }
+    }
+}
+
 /// Todos os jogadores do roster têm elo confirmado? Unranked carregado
 /// (tier 0 com `rankResolved`) conta como confirmado.
 fn ranks_ready(roster: &Value) -> bool {
@@ -1015,6 +1122,19 @@ async fn tick(
     let pres_arr = presences["presences"].as_array().cloned().unwrap_or_default();
     clog!("[crymora] presences: {} · phase-source ok", pres_arr.len());
 
+    /* partyId por puuid nas presenças (amigos). O payload da partida não
+     * traz PartyID; para amigos no lobby/partida a presença é a fonte. */
+    let mut friends_party: HashMap<String, (String, i64)> = HashMap::new();
+    for p in &pres_arr {
+        let Some(puuid) = p["puuid"].as_str() else { continue };
+        let info = remote::presence_priv_info(p);
+        if info.party_id.is_empty() {
+            continue;
+        }
+        let size = remote::presence_party_size(p).unwrap_or(1);
+        friends_party.insert(puuid.to_string(), (info.party_id, size));
+    }
+
     if region.is_none() {
         *region = region::detect();
         if region.is_none() {
@@ -1077,13 +1197,20 @@ async fn tick(
     let self_name = cache.names.get(&loc.puuid).map(|(n, _)| n.clone()).unwrap_or_default();
 
     // roster: só com região (glz/pd) — igual ao original ("start VALORANT")
-    let roster = if phase == "MENUS" {
+    let mut roster = if phase == "MENUS" {
         None
     } else if let Some(ctx) = ctx.as_ref() {
         build_roster(ctx, phase, &priv_me, cache, cfg).await
     } else {
         None
     };
+    /* grupos ao vivo: o payload da partida não tem PartyID. Marca o
+     * próprio grupo (API de party) e amigos que estejam na partida
+     * (presença). Inimigos desconhecidos ficam sem marca. */
+    if let (Some(ctx), Some(r)) = (ctx.as_ref(), roster.as_mut()) {
+        let party = self_party(ctx, cache).await;
+        inject_parties(r, party.as_ref(), &friends_party);
+    }
 
     let hold_pregame = pregame_hold(phase, roster.as_ref(), cache, unix_now());
 
@@ -1192,6 +1319,8 @@ impl Poller {
                 last_self_puuid: None,
                 pregame_since: None,
                 pregame_shown: false,
+                self_party: None,
+                party_backoff: 0,
             },
             cfg,
         }
@@ -1240,6 +1369,8 @@ mod tests {
             last_self_puuid: None,
             pregame_since: None,
             pregame_shown: false,
+            self_party: None,
+            party_backoff: 0,
         }
     }
 
@@ -1267,6 +1398,48 @@ mod tests {
         /* roster vazio não é "pronto" */
         let empty = json!({ "allies": [], "enemyTeam": [] });
         assert!(!ranks_ready(&empty));
+    }
+
+    #[test]
+    fn injects_party_ids_from_own_party_and_friends() {
+        let mut roster = json!({
+            "allies": [
+                { "puuid": "a", "partyId": "" },
+                { "puuid": "b", "partyId": "" },
+                { "puuid": "c", "partyId": "" },
+            ],
+            "enemyTeam": [
+                { "puuid": "d", "partyId": "" },
+                { "puuid": "e", "partyId": "" },
+            ],
+        });
+        let own = ("own-party".to_string(), vec!["a".to_string(), "b".to_string()]);
+        let mut friends = HashMap::new();
+        friends.insert("d".to_string(), ("friend-party".to_string(), 2));
+
+        inject_parties(&mut roster, Some(&own), &friends);
+
+        /* membros do próprio grupo — inclusive quem não é amigo */
+        assert_eq!(roster["allies"][0]["partyId"], "own-party");
+        assert_eq!(roster["allies"][1]["partyId"], "own-party");
+        assert_eq!(roster["allies"][0]["partySize"], 2);
+        /* fora do grupo continua sem marca */
+        assert_eq!(roster["allies"][2]["partyId"], "");
+        /* amigo no time inimigo usa o partyId da presença */
+        assert_eq!(roster["enemyTeam"][0]["partyId"], "friend-party");
+        assert_eq!(roster["enemyTeam"][0]["partySize"], 2);
+        assert_eq!(roster["enemyTeam"][1]["partyId"], "");
+    }
+
+    #[test]
+    fn own_party_wins_over_presence_party() {
+        let mut roster = json!({
+            "allies": [{ "puuid": "a", "partyId": "stale" }],
+            "enemyTeam": [],
+        });
+        let own = ("own-party".to_string(), vec!["a".to_string()]);
+        inject_parties(&mut roster, Some(&own), &HashMap::new());
+        assert_eq!(roster["allies"][0]["partyId"], "own-party");
     }
 
     #[test]

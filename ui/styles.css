@@ -277,6 +277,20 @@ h1 { font-size: 21px; font-weight: 650; letter-spacing: -.02em; }
 }
 .f-rank { width: 20px; height: 20px; flex: none; }
 
+/* barra de grupo na linha do amigo — mesma cor = mesmo grupo */
+.frow { position: relative; }
+.frow.has-pm { padding-left: 20px; }
+.f-pm {
+  position: absolute; left: 0; top: 9px; bottom: 9px;
+  width: 3px; border-radius: 0 3px 3px 0;
+  background: currentColor;
+}
+.f-pm.c0 { color: #4aa8ff; }
+.f-pm.c1 { color: #ffb347; }
+.f-pm.c2 { color: #b07cff; }
+.f-pm.c3 { color: #4ade80; }
+.f-pm.c4 { color: #ff7ab8; }
+
 /* ---- settings ---- */
 .set-grid { display: flex; flex-direction: column; gap: 12px; max-width: 520px; }
 .set {
@@ -377,11 +391,24 @@ h1 { font-size: 21px; font-weight: 650; letter-spacing: -.02em; }
   display: block; width: 4px; height: 12px;
   border-radius: 2px; background: currentColor;
 }
-.pm.c0 { color: #4aa8ff; }
-.pm.c1 { color: #ffb347; }
-.pm.c2 { color: #b07cff; }
-.pm.c3 { color: #4ade80; }
-.pm.c4 { color: #ff7ab8; }
+.pm.c0, .pc-party.c0 { color: #4aa8ff; }
+.pm.c1, .pc-party.c1 { color: #ffb347; }
+.pm.c2, .pc-party.c2 { color: #b07cff; }
+.pm.c3, .pc-party.c3 { color: #4ade80; }
+.pm.c4, .pc-party.c4 { color: #ff7ab8; }
+
+/* selo com o tamanho do grupo, no topo do card */
+.pc-party {
+  display: inline-flex; align-items: center; gap: 3px;
+  flex: none;
+  font-family: "Geist Mono", monospace; font-size: 10px; font-weight: 600;
+  line-height: 1; padding: 3px 6px;
+  border-radius: 999px;
+  color: var(--tx-dim);
+  background: color-mix(in srgb, currentColor 12%, transparent);
+  border: 1px solid color-mix(in srgb, currentColor 32%, transparent);
+}
+.pc-party svg { opacity: .85; }
 
 /* ---- toasts de transição ---- */
 #toasts {

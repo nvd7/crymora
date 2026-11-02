@@ -27,7 +27,7 @@ Crymora is a Windows desktop app that brings together what you need to know befo
 
 It talks **only** to the Riot Client installed on your machine and to public Riot services. There is no custom backend, telemetry, cloud account or data collection. Everything stays on your computer.
 
-> **Status:** current public release (`v0.1.1`). The UI and backend are stable for daily use, and the project continues to evolve.
+> **Status:** current public release (`v0.1.2`). The UI and backend are stable for daily use, and the project continues to evolve.
 
 > [!WARNING]
 > **Riot Games notice — read before using.**  
@@ -48,12 +48,14 @@ It talks **only** to the Riot Client installed on your machine and to public Rio
 - **Pre-game with both teams visible**, including enemy nicknames, ranks and levels.
 - Full roster during the match, with allies and opponents.
 - Map, mode, live score and party indicators.
+- **Group colors:** same color = same group, with the group size on the card and names in the tooltip. Your own party comes from the party API; friends in the lobby/match come from presence. Unknown enemies are not marked.
 - Smart rank wait: the roster is only shown when ranks are confirmed (or released within 5 seconds with whatever is available).
 
 ### Friends
 
 - Online-first list, straight from Valorant client presence.
 - Status, activity, rank and level when available.
+- Friends in the same group share the same color; the tooltip lists the names and group size.
 - Initials avatar fallback for friends without a card or known level — no fake level 0.
 - Player details in a modal, with a shortcut to the public profile.
 
@@ -113,13 +115,13 @@ Full details in [docs/PRIVACY.md](docs/PRIVACY.md) and [SECURITY.md](SECURITY.md
    [**Download the installer**](https://github.com/nvd7/crymora/releases/latest) · 3.24 MiB
 
    ```text
-   Crymora_0.1.1_x64-setup.exe
+   Crymora_0.1.2_x64-setup.exe
    ```
 
 2. Check the SHA-256 published in [`builds/final/SHA256SUMS.txt`](builds/final/SHA256SUMS.txt):
 
    ```powershell
-   Get-FileHash .\Crymora_0.1.1_x64-setup.exe -Algorithm SHA256
+   Get-FileHash .\Crymora_0.1.2_x64-setup.exe -Algorithm SHA256
    ```
 
 3. Run the installer. It installs **for the current user only**, in `%LOCALAPPDATA%\Crymora`, without asking for administrator rights.
@@ -202,7 +204,7 @@ cargo tauri build
 Expected output:
 
 ```text
-src-tauri\target\release\bundle\nsis\Crymora_0.1.1_x64-setup.exe
+src-tauri\target\release\bundle\nsis\Crymora_0.1.2_x64-setup.exe
 ```
 
 ## Project structure

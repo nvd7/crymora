@@ -1,6 +1,6 @@
 [package]
 name = "crymora"
-version = "0.1.1"
+version = "0.1.2"
 description = "Crymora — companheiro local do Valorant"
 edition = "2021"
 

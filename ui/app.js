@@ -335,6 +335,7 @@ const I18N = {
     watchLive: "Assistir ao vivo",
     watchLiveName: "Assistir {n} ao vivo",
     partyOf: "Grupo de {n}",
+    yourParty: "Seu grupo",
     curRank: "Atual", actPeak: "Pico do ato", unranked: "Unranked",
     actW: "V/D do ato", prevAct: "Ato anterior",
     leaderboard: "Leaderboard", careerGames: "Partidas na carreira",
@@ -418,6 +419,7 @@ const I18N = {
     watchLive: "Watch live",
     watchLiveName: "Watch {n} live",
     partyOf: "Party of {n}",
+    yourParty: "Your party",
     curRank: "Current", actPeak: "Act peak", unranked: "Unranked",
     actW: "Act W/L", prevAct: "Previous act",
     leaderboard: "Leaderboard", careerGames: "Career matches",
@@ -878,9 +880,19 @@ function playerCard(p, isAlly, i = 0, party = null) {
   const btn = tw
     ? `<button class="twitch" data-open="https://www.twitch.tv/${esc(tw)}" title="${esc(t("watchLiveName", { n: riotId }))}" aria-label="${esc(t("watchLiveName", { n: riotId }))}"><svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M4 3 3 6.5V20h4v2.5h2.5L12 20h4l5-5V3H4Zm14 11-3 3h-4l-2.5 2.5V17H7V5h11v9Z"/><path d="M11 8h2v5h-2zM15.5 8h2v5h-2z"/></svg></button>`
     : "";
-  /* risquinhos de grupo no lado direito (mesma party = mesma cor) */
+  /* grupo: mesma party = mesma cor. O Riot não manda PartyID no payload
+   * da partida; o backend injeta o próprio grupo (API de party) e amigos
+   * no lobby (presença). Só marca grupo com 2+ membros visíveis. */
+  const partyTitle = party
+    ? `${party.self ? t("yourParty") : t("partyOf", { n: party.size })}${
+        party.names.length ? `: ${party.names.join(", ")}` : ""
+      }`
+    : "";
   const pm = party
-    ? `<span class="pm c${party.c}" title="${esc(t("partyOf", { n: party.size }))}">${"<i></i>".repeat(Math.min(party.size, 5))}</span>`
+    ? `<span class="pm c${party.c}" title="${esc(partyTitle)}">${"<i></i>".repeat(Math.min(party.size, 5))}</span>`
+    : "";
+  const pp = party
+    ? `<span class="pc-party c${party.c}" title="${esc(partyTitle)}"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" aria-hidden="true"><circle cx="9" cy="8" r="3" stroke="currentColor" stroke-width="2"/><path d="M3.5 19c.6-3 2.8-4.6 5.5-4.6s4.9 1.6 5.5 4.6M16 5.6a3 3 0 0 1 0 5.8M17.4 14.6c2 .4 3.3 1.8 3.8 4.1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>${party.size}</span>`
     : "";
   /* acento do card: true=aliado, false=inimigo, null=neutro (mata-mata) */
   const accent = isAlly === true ? "ally" : isAlly === false ? "enemy" : "neutral";
@@ -888,7 +900,7 @@ function playerCard(p, isAlly, i = 0, party = null) {
     ${avatarHTML(av, riotId, "pc-av")}
     <div class="pc-body">
       <div class="pc-top">
-        <span class="pc-name">${esc(riotId)}${p.isSelf ? ` <em class="you">${esc(t("you"))}</em>` : ""}</span>${btn}
+        <span class="pc-name">${esc(riotId)}${p.isSelf ? ` <em class="you">${esc(t("you"))}</em>` : ""}</span>${pp}${btn}
       </div>
       <div class="pc-meta">
         ${ico ? `<img class="pc-rank" src="${esc(ico)}" alt="" loading="lazy" />` : ""}
@@ -924,25 +936,35 @@ function rosterSig(roster) {
   return State.phase + "|" + [...allies, ...enemies].map((p) =>
     [
       p.puuid, p.rank?.tier, p.rank?.rr, p.peakTier, p.agent,
-      p.accountLevel, p.leaderboardRank, p.partyId,
+      p.accountLevel, p.leaderboardRank, p.partyId, p.partySize,
       p.puuid ? !!Twitch.cached(p.puuid) : "",
     ].join("|")
   ).join(";");
 }
 
-/* risquinhos de grupo: uma cor por partyId com 2+ membros (mesma cor
- * nos dois times — dá pra ver o grupo de uma vez). Conta é global. */
+/* cores de grupo: mesma party = mesma cor (nos dois times — dá para ver
+ * o grupo de uma vez). Conta é global e só entra quem tem 2+ membros
+ * visíveis; o backend só injeta partyId do próprio grupo e de amigos. */
 function partyMarks(roster) {
   const { allies, enemies } = rosterPlayers(roster);
-  const counts = {};
+  const groups = {};
   for (const p of [...allies, ...enemies]) {
     if (!p.partyId) continue;
-    counts[p.partyId] = (counts[p.partyId] ?? 0) + 1;
+    (groups[p.partyId] ??= []).push(p);
   }
   const colors = {};
   let c = 0;
-  for (const [id, n] of Object.entries(counts)) {
-    if (n > 1) colors[id] = { c: c++ % 5, size: n };
+  for (const [id, list] of Object.entries(groups)) {
+    if (list.length < 2) continue;
+    /* partySize da presença pode ser maior que os amigos visíveis (o
+     * grupo inclui quem não é amigo); mostra o tamanho real quando há */
+    const size = Math.max(list.length, ...list.map((p) => p.partySize ?? 0));
+    colors[id] = {
+      c: c++ % 5,
+      size,
+      names: list.map((p) => Twitch.riotId(p)).filter(Boolean),
+      self: list.some((p) => p.isSelf),
+    };
   }
   return colors;
 }
@@ -1393,10 +1415,20 @@ const F_GROUPS = [
   ["offline", "fOffline"],
 ];
 
-function friendRow(f, label, cls, i = 0) {
+function friendRow(f, label, cls, i = 0, party = null) {
   const id = `${f.gameName ?? f.name ?? ""}${f.tagLine ? "#" + f.tagLine : ""}`;
-  const party = (f.partySize ?? 0) > 1
+  /* badge ×N: tamanho do grupo vindo da presença (inclui quem não é amigo) */
+  const partyBadge = (f.partySize ?? 0) > 1
     ? `<span class="f-party" title="${esc(t("partyOf", { n: f.partySize }))}">×${esc(f.partySize)}</span>`
+    : "";
+  /* barra colorida: amigos visíveis no mesmo grupo = mesma cor */
+  const partyTitle = party
+    ? `${party.self ? t("yourParty") : t("partyOf", { n: party.size })}${
+        party.names.length ? `: ${party.names.join(", ")}` : ""
+      }`
+    : "";
+  const pm = party
+    ? `<span class="f-pm c${party.c}" title="${esc(partyTitle)}" aria-hidden="true"></span>`
     : "";
   const tier = (f.competitiveTier ?? 0) > 0 ? f.competitiveTier : null;
   const ico = tier ? rankIcon(tier) : "";
@@ -1406,11 +1438,12 @@ function friendRow(f, label, cls, i = 0) {
   const card = f.playerCardId
     ? `https://media.valorant-api.com/playercards/${f.playerCardId}/smallart.png`
     : "";
-  return `<article class="frow ${cls}" style="--i:${i}" data-puuid="${esc(f.puuid ?? "")}"
+  return `<article class="frow ${cls}${party ? " has-pm" : ""}" style="--i:${i}" data-puuid="${esc(f.puuid ?? "")}"
       role="button" tabindex="0" title="${esc(t("viewStats"))}">
+    ${pm}
     <span class="f-dot" aria-hidden="true"></span>
     ${avatarHTML(card, id, "f-av")}
-    <span class="f-name">${esc(id)}</span>${party}
+    <span class="f-name">${esc(id)}</span>${partyBadge}
     ${ico ? `<img class="f-rank" src="${esc(ico)}" alt="" loading="lazy" title="${esc(rankTitle)}" />` : ""}
     <span class="f-status">${esc(label)}</span>
   </article>`;
@@ -1451,7 +1484,7 @@ async function tickFriends() {
    * não re-anima as linhas a cada tick de 5s */
   const sig = list.map((f) => {
     const i = friendInfo(f);
-    return `${f.puuid}|${i.group}|${i.label}|${f.competitiveTier}|${f.rankedRating}|${f.partySize}|${f.accountLevel}|${f.playerCardId}`;
+    return `${f.puuid}|${i.group}|${i.label}|${f.competitiveTier}|${f.rankedRating}|${f.partySize}|${f.partyId}|${f.accountLevel}|${f.playerCardId}`;
   }).sort().join(";");
   const active = $("#view-friends").classList.contains("is-active");
   if (!active) {
@@ -1472,11 +1505,14 @@ async function tickFriends() {
   }
   for (const arr of Object.values(byGroup))
     arr.sort((a, b) => Twitch.riotId(a.f).localeCompare(Twitch.riotId(b.f)));
+  const parties = partyMarks({ allies: list, enemyTeam: [] });
   $("#friends-list").innerHTML =
     F_GROUPS.map(([key, titleKey]) => {
       const arr = byGroup[key] ?? [];
       if (!arr.length) return "";
-      const rows = arr.map((x, i) => friendRow(x.f, x.label, x.cls, i)).join("");
+      const rows = arr.map((x, i) =>
+        friendRow(x.f, x.label, x.cls, i, x.f.partyId ? parties[x.f.partyId] : null)
+      ).join("");
       return `<h3 class="f-head">${esc(t(titleKey))} <span class="f-count">${arr.length}</span></h3>` + rows;
     }).join("") ||
     `<p class="empty">${esc(t("noFriends"))}</p>`;

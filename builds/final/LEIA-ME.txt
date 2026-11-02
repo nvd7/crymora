@@ -1,10 +1,10 @@
-Crymora 0.1.1 — instalador final
+Crymora 0.1.2 — instalador final
 ================================
 
-Arquivo : Crymora_0.1.1_x64-setup.exe
-Tamanho : 3.400.851 bytes (3,24 MiB)
-SHA-256 : EB30513E29C3FD8FBD7C28F71A3FA1609BAD725CA473C8119E5C8617E4289FB3
-Gerado  : 01/11/2026 03:26
+Arquivo : Crymora_0.1.2_x64-setup.exe
+Tamanho : 3.409.299 bytes (3,25 MiB)
+SHA-256 : B0AD3FC0DA785662B1A592C265862E241CC10B2E2134CCA1F9A61D522985DB7F
+Gerado  : 01/11/2026 23:25
 
 Instalação
 ----------
@@ -28,6 +28,16 @@ Presença no Discord
   transmite a presença. Para ver o botão "GitHub", abra o perfil em outra
   conta ou peça a um amigo.
 - A conexão é 100% local, pelo pipe do Discord; nada do jogo é lido por aqui.
+
+Grupos no roster
+----------------
+- Mesma cor = mesmo grupo. O selo mostra o tamanho do grupo e o tooltip
+  lista os nomes.
+- Ao vivo, só o seu grupo (API de party do Riot Client) e amigos no
+  lobby/partida (presença do cliente) são marcados. Inimigos desconhecidos
+  não são marcados: o Riot removeu o PartyID dos payloads ao vivo.
+- Só grupos com 2 ou mais membros visíveis recebem cor — um amigo sozinho
+  em um grupo maior não é marcado.
 
 Segurança
 ---------

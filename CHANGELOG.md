@@ -12,6 +12,19 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 - Assinatura de código do instalador.
 - Testes de integração com o Riot Client em CI.
 
+## [0.1.2] - 2026-11-01
+
+### Adicionado
+
+- Indicador de grupo por cor no roster e na lista de amigos: mesma cor = mesmo grupo, com o tamanho do grupo e os nomes no tooltip.
+- O próprio grupo é lido ao vivo pela API de party do Riot Client (glz), incluindo membros que não estão na lista de amigos.
+- Amigos no lobby ou na partida também recebem a marca de grupo pela presença do cliente.
+
+### Notas
+
+- O Riot removeu o `PartyID` dos payloads ao vivo de pré-jogo e partida. Por isso, inimigos desconhecidos não são marcados: só aparece o que é possível confirmar localmente (seu grupo e amigos).
+- Só grupos com 2 ou mais membros visíveis são marcados — um amigo sozinho em um grupo maior não recebe cor.
+
 ## [0.1.1] - 2026-11-01
 
 ### Adicionado
