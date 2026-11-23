@@ -301,6 +301,7 @@ async fn build_roster(
     priv_me: &Value,
     cache: &mut Caches,
     cfg: &Path,
+    privacy: bool,
 ) -> Option<Value> {
     let base = if phase == "PREGAME" { "/pregame/v1/players/" } else { "/core-game/v1/players/" };
     let pid = match ctx.glz(&format!("{}{}", base, ctx.local.puuid)).await {
@@ -505,7 +506,7 @@ async fn build_roster(
         };
         players.push(build_player(p, m.as_ref(), p.puuid == ctx.local.puuid));
     }
-    if fetched_any {
+    if fetched_any && !privacy {
         save_json_map(&cfg.join("mmr-cache.json"), &cache.mmr);
     }
     let with_rank = players
@@ -693,6 +694,7 @@ async fn build_friends(
     pres_arr: &[Value],
     cache: &mut Caches,
     cfg: &Path,
+    privacy: bool,
 ) -> Value {
     let Ok(f) = remote::local("/chat/v4/friends").await else {
         clog!("[crymora] friends erro: /chat/v4/friends falhou");
@@ -846,10 +848,10 @@ async fn build_friends(
             "playerCardId": card,
         }));
     }
-    if mmr_fetched {
+    if mmr_fetched && !privacy {
         save_json_map(&cfg.join("mmr-cache.json"), &cache.mmr);
     }
-    if dirty {
+    if dirty && !privacy {
         save_json_map(&cfg.join("friends-cache.json"), &cache.friends);
     }
     json!({ "friends": out })
@@ -902,6 +904,7 @@ async fn tick(
     local: &mut Option<Local>,
     cache: &mut Caches,
     cfg: &Path,
+    privacy: bool,
 ) -> (Snapshot, RpInfo) {
     let started = std::time::Instant::now();
     if lockfile::read().is_none() {
@@ -951,7 +954,9 @@ async fn tick(
             cache.friends.clear();
             cache.pregame_since = None;
             cache.pregame_shown = false;
-            save_json_map(&cfg.join("friends-cache.json"), &cache.friends);
+            if !privacy {
+                save_json_map(&cfg.join("friends-cache.json"), &cache.friends);
+            }
             clog!(
                 "[crymora] conta ativa: {}…",
                 loc.puuid.chars().take(8).collect::<String>()
@@ -1048,7 +1053,7 @@ async fn tick(
     let mut roster = if phase == "MENUS" {
         None
     } else if let Some(ctx) = ctx.as_ref() {
-        build_roster(ctx, phase, &priv_me, cache, cfg).await
+        build_roster(ctx, phase, &priv_me, cache, cfg, privacy).await
     } else {
         None
     };
@@ -1062,7 +1067,7 @@ async fn tick(
 
     let hold_pregame = pregame_hold(phase, roster.as_ref(), cache, unix_now());
 
-    let friends = build_friends(ctx.as_ref(), &pres_arr, cache, cfg).await;
+    let friends = build_friends(ctx.as_ref(), &pres_arr, cache, cfg, privacy).await;
     clog!(
         "[crymora] tick ok · phase={phase} · friends={} · roster={}{} · {}ms",
         friends["friends"].as_array().map(|a| a.len()).unwrap_or(0),
@@ -1145,6 +1150,7 @@ fn offline(client_running: bool) -> (Snapshot, RpInfo) {
 /// comando `refresh_now` rode um tick na hora, sem esperar o intervalo —
 /// é o que faz o Alt+Tab voltar com tudo atualizado.
 pub struct Poller {
+    app: AppHandle,
     region: Option<Region>,
     local: Option<Local>,
     cache: Caches,
@@ -1155,6 +1161,7 @@ impl Poller {
     pub fn new(app: &AppHandle) -> Self {
         let cfg = config_dir(app);
         Self {
+            app: app.clone(),
             region: None,
             local: None,
             cache: Caches {
@@ -1175,7 +1182,20 @@ impl Poller {
     }
 
     pub async fn tick(&mut self) -> (Snapshot, RpInfo) {
-        tick(&mut self.region, &mut self.local, &mut self.cache, &self.cfg).await
+        /* modo privado: não grava caches em disco (settings.json é lido a
+         * cada tick — alternar o toggle vale no próximo) */
+        let privacy = crate::settings::get(&self.app)
+            .ok()
+            .and_then(|v| v["privacyMode"].as_bool())
+            .unwrap_or(false);
+        tick(
+            &mut self.region,
+            &mut self.local,
+            &mut self.cache,
+            &self.cfg,
+            privacy,
+        )
+        .await
     }
 }
 

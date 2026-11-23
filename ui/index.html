@@ -161,13 +161,21 @@
         </label>
 
         <div class="set-head" data-i18n="secPrivacy">Privacidade e segurança</div>
+        <label class="set">
+          <span>
+            <span data-i18n="setPrivacyMode">Modo privado</span>
+            <small class="set-hint" data-i18n="setPrivacyModeHint">Não grava caches de elo e amigos em disco.</small>
+          </span>
+          <input type="checkbox" id="set-privacy" />
+          <i class="switch" aria-hidden="true"></i>
+        </label>
         <div class="set security-row">
           <span class="shield" aria-hidden="true">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none"><path d="M12 3 5 6v5c0 4.4 2.8 8.2 7 9.5 4.2-1.3 7-5.1 7-9.5V6l-7-3Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="m9 12 2 2 4-4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </span>
           <span class="set-label">
             <span data-i18n="setSecurityTitle">Somente leitura</span>
-            <small class="set-hint" data-i18n="setSecurityNote">Sem memória do jogo, injeção, overlay ou automação. O app exibe os dois times no pré-jogo; veja o aviso de política da Riot no LEIA-ME.</small>
+            <small class="set-hint" data-i18n="setSecurityNote">Sem memória do jogo, injeção, overlay ou automação. O pré-jogo mostra só o seu time — os inimigos aparecem quando a partida começa.</small>
           </span>
         </div>
         <div class="set security-row">

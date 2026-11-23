@@ -18,7 +18,11 @@ fn path(app: &tauri::AppHandle) -> PathBuf {
 fn known(k: &str) -> bool {
     matches!(
         k,
-        "launchOnBoot" | "trackedInGameAlertsEnabled" | "discordRpEnabled" | "telemetryOptIn"
+        "launchOnBoot"
+            | "trackedInGameAlertsEnabled"
+            | "discordRpEnabled"
+            | "telemetryOptIn"
+            | "privacyMode"
     )
 }
 
@@ -29,6 +33,8 @@ pub fn get(app: &tauri::AppHandle) -> Result<Value, String> {
         "trackedInGameAlertsEnabled": true,
         "discordRpEnabled": false,
         "telemetryOptIn": false,
+        /* modo privado: não grava caches em disco (mmr/friends) */
+        "privacyMode": false,
     });
     match fs::read_to_string(&p) {
         Ok(txt) => {

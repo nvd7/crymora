@@ -1659,6 +1659,7 @@ async function boot() {
     const id = e.target.id, on = e.target.checked;
     if (id === "set-boot") await Bridge.saveSettings({ launchOnBoot: on });
     if (id === "set-discord") await Bridge.saveSettings({ discordRpEnabled: on });
+    if (id === "set-privacy") await Bridge.saveSettings({ privacyMode: on });
     if (id === "set-alerts") {
       await Bridge.saveSettings({ trackedInGameAlertsEnabled: on });
       Toasts.enabled = on;
