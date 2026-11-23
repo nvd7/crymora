@@ -4,8 +4,8 @@
 
 | Versão | Suporte |
 | --- | --- |
-| `0.1.x` | ✅ Recebe correções |
-| `< 0.1` | ❌ Não suportada |
+| `0.2.x` | ✅ Recebe correções |
+| `< 0.2` | ❌ Não suportada |
 
 ## Como reportar uma vulnerabilidade
 
@@ -66,3 +66,20 @@ O Crymora é um leitor passivo:
 ## Instalador não assinado
 
 O instalador da versão `0.2.0` não possui assinatura de código. O SHA-256 de cada binário é publicado em `builds/final/SHA256SUMS.txt` e na release correspondente. Sempre confira o hash antes de executar.
+
+## Avisos de dependência
+
+A árvore é auditada contra o [OSV](https://osv.dev) e o [RustSec](https://rustsec.org) a cada release.
+
+Estado da `0.2.0`:
+
+| Crate | Aviso | Situação |
+| --- | --- | --- |
+| `cookie` | RUSTSEC-2026-0594 | Corrigido — 0.18.3 |
+| `url` | RUSTSEC-2026-0592 | Corrigido — 2.5.9 |
+| `rustix` | RUSTSEC-2026-0486 | Corrigido — 1.1.6 |
+| `glib` | GHSA-wrw7-89jp-8q8g / RUSTSEC-2024-0429 | Não alcançável no Windows |
+
+O `glib` é um aviso conhecido e **não afeta o binário do Windows**. Ele entra no `Cargo.lock` pela pilha Linux do Tauri (`gtk` 0.18 → `webkit2gtk` → `wry`), que só é compilada com `--target x86_64-unknown-linux-gnu`. O Crymora distribui apenas o instalador `x86_64-pc-windows-msvc`, então nenhum código do `glib` chega ao processo. A correção exige a migração da pilha gtk-rs para 0.20, que depende do Tauri e não pode ser feita daqui. O alerta correspondente fica registrado como *not affected* no Dependabot.
+
+`chrono`, `proc-macro-error`, `zbus_names` e `zvariant` aparecem como *unmaintained* no RustSec, sem CVE associada e sem versão corrigida publicada. Também são de dependências transitivas.

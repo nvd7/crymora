@@ -57,6 +57,12 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 ### Corrigido
 
 - Respostas de erro não despejam o corpo inteiro no log (140 caracteres).
+- Dependências com aviso publicado atualizadas: `cookie` 0.18.2 → 0.18.3
+  (nonces de cookie privado podiam repetir em processos que fazem fork),
+  `url` 2.5.8 → 2.5.9 (stack overflow em `Url::origin()` com `blob:` aninhado)
+  e `rustix` 1.1.5 → 1.1.6 (xattr marcava bytes não escritos como
+  inicializados). Nenhuma das três era alcançável pelo app, mas saem da
+  árvore.
 
 ## [0.1.2] - 2026-11-01
 
