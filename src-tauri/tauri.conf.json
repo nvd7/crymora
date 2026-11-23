@@ -11,15 +11,16 @@
       {
         "label": "main",
         "title": "Crymora",
-        "width": 1160,
-        "height": 740,
-        "minWidth": 940,
-        "minHeight": 620,
-        "additionalBrowserArgs": "--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection --disable-background-timer-throttling --disable-renderer-backgrounding --disable-backgrounding-occluded-windows"
+        "width": 1180,
+        "height": 760,
+        "minWidth": 980,
+        "minHeight": 640,
+        "additionalBrowserArgs": "--disable-features=msWebOOUI,msPdfOOUI --disable-background-timer-throttling --disable-renderer-backgrounding --disable-backgrounding-occluded-windows"
       }
     ],
     "security": {
-      "csp": "default-src 'self'; connect-src 'self' ipc: http://ipc.localhost https://valorant-api.com; img-src 'self' data: https://media.valorant-api.com; style-src 'self' 'unsafe-inline'; font-src 'self'; script-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'"
+      "freezePrototype": true,
+      "csp": "default-src 'self'; connect-src 'self' ipc: http://ipc.localhost https://valorant-api.com; img-src 'self' data: https://media.valorant-api.com; style-src 'self' 'unsafe-inline'; font-src 'self'; script-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'; frame-src 'none'; frame-ancestors 'none'; worker-src 'none'"
     }
   },
   "bundle": {
