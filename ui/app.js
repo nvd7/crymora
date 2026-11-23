@@ -3,7 +3,9 @@
  * Contrato confirmado por RE do bundle original:
  *   invoke            → window.__TAURI_INTERNALS__.invoke(cmd, args)
  *   get_match_state   → { phase: "PREGAME" | "INGAME" | ... } (polling 2-4s)
- *   get_pregame / get_live_roster → { allies|myTeam, enemyTeam, mode }
+ *   get_pregame / get_live_roster → { allies|myTeam, enemyTeam, enemiesHidden, mode }
+ *     pré-jogo: só `allies`; `enemiesHidden: true` (inimigo só aparece
+ *     quando a partida começa — revelar antes é scouting e a Riot pune)
  *     player: { puuid, name, tagLine, isSelf, accountLevel, competitiveTier,
  *               rank: {tier, rr, name}?, rankResolved, peakTier, peakName,
  *               peakRr?, peakResolved, leaderboardRank?, agent (uuid),
@@ -329,11 +331,11 @@ const I18N = {
     noMatch: "Nenhuma partida ativa — entre na fila e os times aparecem aqui.",
     noFriends: "Nenhum amigo — abra o cliente do Valorant",
     players: "Jogadores", allies: "Aliados", enemies: "Inimigos",
+    enemiesHiddenNote:
+      "Os inimigos aparecem quando a partida começar. O Crymora não revela adversários no pré-jogo.",
     you: "você",
     careerPeak: "Pico de carreira",
     lbPos: "Posição no leaderboard da região",
-    watchLive: "Assistir ao vivo",
-    watchLiveName: "Assistir {n} ao vivo",
     partyOf: "Grupo de {n}",
     yourParty: "Seu grupo",
     curRank: "Atual", actPeak: "Pico do ato", unranked: "Unranked",
@@ -413,11 +415,11 @@ const I18N = {
     noMatch: "No active match — queue up and the teams show up here.",
     noFriends: "No friends — open the Valorant client",
     players: "Players", allies: "Allies", enemies: "Enemies",
+    enemiesHiddenNote:
+      "Enemies appear once the match starts. Crymora does not reveal opponents during pre-game.",
     you: "you",
     careerPeak: "Career peak",
     lbPos: "Regional leaderboard position",
-    watchLive: "Watch live",
-    watchLiveName: "Watch {n} live",
     partyOf: "Party of {n}",
     yourParty: "Your party",
     curRank: "Current", actPeak: "Act peak", unranked: "Unranked",
@@ -928,16 +930,14 @@ function rosterPlayers(roster) {
   };
 }
 
-/* assinatura do roster: se nada que aparece no card mudou, nem o Twitch
- * em cache, o re-render é pulado (não re-anima cards nem quebra o hover
- * a cada tick de 2.5s) */
+/* assinatura do roster: se nada que aparece no card mudou, o re-render é
+ * pulado (não re-anima cards nem quebra o hover a cada tick de ~2.5s) */
 function rosterSig(roster) {
   const { allies, enemies } = rosterPlayers(roster);
-  return State.phase + "|" + [...allies, ...enemies].map((p) =>
+  return State.phase + "|" + (roster.enemiesHidden ? "hidden" : "shown") + "|" + [...allies, ...enemies].map((p) =>
     [
       p.puuid, p.rank?.tier, p.rank?.rr, p.peakTier, p.agent,
       p.accountLevel, p.leaderboardRank, p.partyId, p.partySize,
-      p.puuid ? !!Twitch.cached(p.puuid) : "",
     ].join("|")
   ).join(";");
 }
@@ -990,7 +990,19 @@ function renderRoster(roster) {
     $("#teams").innerHTML = section(t("players"), "neutral", grid(all, null), all.length);
     return;
   }
-  /* pré-jogo e partida: o backend devolve os dois times */
+  /* pré-jogo: só aliados. O time inimigo aparece quando a partida começa —
+   * o app não consulta loadouts nem lê o log do jogo atrás de adversário. */
+  if (roster.enemiesHidden) {
+    $("#teams").innerHTML =
+      section(t("allies"), "allies", grid(allies, true), allies.length) +
+      section(
+        t("enemies"),
+        "enemies",
+        `<p class="empty hidden-note">${esc(t("enemiesHiddenNote"))}</p>`,
+        enemies.length
+      );
+    return;
+  }
   const enemyCards = grid(enemies, false);
   $("#teams").innerHTML =
     section(t("allies"), "allies", grid(allies, true), allies.length) +

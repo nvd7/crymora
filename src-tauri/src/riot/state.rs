@@ -276,136 +276,14 @@ fn build_player(p: &RawPlayer, m: Option<&MmrInfo>, is_self: bool) -> Value {
 /* roster (pregame / core-game)                                        */
 /* ------------------------------------------------------------------ */
 
-/// No pré-jogo o payload do glz entrega só o time aliado (`EnemyTeam`
-/// nulo). A fonte primária dos inimigos é o endpoint de loadouts (que
-/// devolve o Subject dos 10); o ShooterGame.log é a reserva, pois os
-/// inimigos só aparecem nele no fim do agent-select. Sem isso a UI
-/// ficava com 5/5 e a seção "Inimigos" vazia.
-fn parse_enemy_puuids(
-    text: &str,
-    match_id: &str,
-    allies: &HashSet<&str>,
-    self_puuid: &str,
-    max: usize,
-) -> Vec<String> {
-    // primeira consulta do pré-jogo para ESTA partida; os inimigos só
-    // aparecem no log no fim do agent-select, então precisamos varrer
-    // desde o começo (a última consulta mudaria a âncora a cada tick).
-    let lines: Vec<&str> = text.lines().collect();
-    let Some(anchor) = lines
-        .iter()
-        .position(|line| line.contains(match_id) && line.contains("Pregame_GetMatch"))
-    else {
-        return vec![];
-    };
-
-    let mut seen = HashSet::new();
-    let mut out = Vec::new();
-    for line in lines[anchor + 1..].iter().copied() {
-        // nova partida = para de ler o log da anterior
-        if line.contains("Pregame_GetMatch") && !line.contains(match_id) {
-            break;
-        }
-        let Some(pos) = line.find("Subject had empty display name. ") else { continue };
-        let rest = &line[pos + "Subject had empty display name. ".len()..];
-        let id = rest.get(..36).unwrap_or("");
-        if id.len() != 36 || !id.chars().all(|c| c.is_ascii_hexdigit() || c == '-') {
-            continue;
-        }
-        if id == self_puuid || allies.contains(id) || !seen.insert(id.to_string()) {
-            continue;
-        }
-        out.push(id.to_string());
-        if out.len() >= max {
-            break;
-        }
-    }
-    out
-}
-
-fn enemies_from_log(
-    match_id: &str,
-    allies: &[RawPlayer],
-    self_puuid: &str,
-    max: usize,
-) -> Vec<RawPlayer> {
-    use std::io::{Read, Seek, SeekFrom};
-
-    let Ok(local) = std::env::var("LOCALAPPDATA") else { return vec![] };
-    let path = PathBuf::from(local)
-        .join("VALORANT").join("Saved").join("Logs").join("ShooterGame.log");
-    let Ok(mut file) = std::fs::File::open(&path) else { return vec![] };
-    let Ok(meta) = file.metadata() else { return vec![] };
-    // log de sessão longa pode ter dezenas de MB: 2 MB do fim bastam
-    let start = meta.len().saturating_sub(2 * 1024 * 1024);
-    if file.seek(SeekFrom::Start(start)).is_err() {
-        return vec![];
-    }
-    let mut buf = Vec::new();
-    if file.read_to_end(&mut buf).is_err() {
-        return vec![];
-    }
-    let text = String::from_utf8_lossy(&buf);
-    let ally_set: HashSet<&str> = allies.iter().map(|p| p.puuid.as_str()).collect();
-    parse_enemy_puuids(&text, match_id, &ally_set, self_puuid, max)
-        .into_iter()
-        .map(|puuid| RawPlayer {
-            puuid,
-            name: None,
-            tag: None,
-            agent: String::new(),
-            team: "Enemy".to_string(),
-            party: String::new(),
-            level: 0,
-            tier_hint: 0,
-        })
-        .collect()
-}
-
-/// Pré-jogo: o payload do glz esconde o time inimigo, mas o endpoint
-/// `/loadouts` devolve o `Subject` de todos os jogadores da partida
-/// (o cliente usa para pré-carregar as skins). É a fonte primária dos
-/// inimigos; o ShooterGame.log fica como reserva.
-async fn enemies_from_loadouts(
-    ctx: &Ctx,
-    match_id: &str,
-    known: &[RawPlayer],
-    self_puuid: &str,
-    max: usize,
-) -> Vec<RawPlayer> {
-    if max == 0 {
-        return vec![];
-    }
-    let path = format!("/pregame/v1/matches/{}/loadouts", match_id);
-    let Ok(v) = ctx.glz(&path).await else { return vec![] };
-    let known_set: HashSet<&str> = known.iter().map(|p| p.puuid.as_str()).collect();
-    let mut seen = HashSet::new();
-    let mut out = Vec::new();
-    for e in v["Loadouts"].as_array().into_iter().flatten() {
-        let Some(id) = e["Subject"].as_str() else { continue };
-        if id.is_empty()
-            || id == self_puuid
-            || known_set.contains(id)
-            || !seen.insert(id.to_string())
-        {
-            continue;
-        }
-        out.push(RawPlayer {
-            puuid: id.to_string(),
-            name: None,
-            tag: None,
-            agent: String::new(),
-            team: "Enemy".to_string(),
-            party: String::new(),
-            level: 0,
-            tier_hint: 0,
-        });
-        if out.len() >= max {
-            break;
-        }
-    }
-    out
-}
+/* Pré-jogo: o app mostra apenas o time aliado.
+ *
+ * Antes existiam duas fontes de inimigos (`/pregame/v1/matches/{id}/loadouts`
+ * e o `ShooterGame.log`) que revelavam os adversários antes da partida.
+ * A Riot classifica exatamente isso como scouting — uso não aprovado que
+ * pode resultar em banimento — e é o motivo mais provável de suspensão de
+ * contas que usam apps desse tipo. O endpoint foi removido do fluxo: os
+ * inimigos aparecem no roster quando a partida começa, como no jogo. */
 
 async fn build_roster(
     ctx: &Ctx,
@@ -488,20 +366,36 @@ async fn build_roster(
     };
 
     if phase == "PREGAME" {
-        /* Pré-jogo: lê os dois times. O payload traz AllyTeam/EnemyTeam
-         * além de Teams; Teams já contém ambos, então iteramos tudo e
-         * usamos EnemyTeam só como fallback (o `seen` evita duplicar).
-         * Aviso: exibir inimigos antes da partida é "scouting" e a Riot
-         * classifica como uso não aprovado — o LEIA-ME documenta o risco. */
+        /* Só o time aliado. O payload pode trazer `Teams` com os dois
+         * lados; aqui descobrimos o TeamID do próprio puuid e mantemos
+         * apenas ele. `EnemyTeam` é ignorado de propósito: revelar
+         * inimigo antes da partida é scouting e a Riot pune. */
         let teams = m["Teams"].as_array().cloned().unwrap_or_default();
+        let mut ally_tid: Option<String> = m["AllyTeam"]["TeamID"].as_str().map(String::from);
+        if ally_tid.is_none() {
+            ally_tid = teams.iter().find_map(|team| {
+                let tid = team["TeamID"].as_str()?;
+                let has_self = team["Players"]
+                    .as_array()
+                    .map(|ps| {
+                        ps.iter()
+                            .any(|p| player_puuid(p) == Some(ctx.local.puuid.as_str()))
+                    })
+                    .unwrap_or(false);
+                has_self.then(|| tid.to_string())
+            });
+        }
         for team in &teams {
-            let tid = team["TeamID"].as_str().unwrap_or("Blue");
+            let tid = team["TeamID"].as_str().unwrap_or("");
+            if ally_tid.as_deref() != Some(tid) {
+                continue;
+            }
             for p in team["Players"].as_array().into_iter().flatten() {
                 read(p, tid);
             }
         }
-        if let Some(players) = m["EnemyTeam"]["Players"].as_array() {
-            let tid = m["EnemyTeam"]["TeamID"].as_str().unwrap_or("Red");
+        if let Some(players) = m["AllyTeam"]["Players"].as_array() {
+            let tid = m["AllyTeam"]["TeamID"].as_str().unwrap_or("Blue");
             for p in players {
                 read(p, tid);
             }
@@ -534,41 +428,8 @@ async fn build_roster(
         .map(|p| p.team.clone())
         .unwrap_or_else(|| "Blue".to_string());
 
-    /* Pré-jogo: o HTTP só trouxe os aliados. A fonte primária é o
-     * endpoint de loadouts, que devolve o Subject dos 10 jogadores;
-     * o ShooterGame.log fica como reserva (os inimigos só aparecem
-     * nele no fim do agent-select). */
-    if phase == "PREGAME" {
-        let enemy_size = m["EnemyTeamSize"].as_u64().unwrap_or(5).clamp(1, 10) as usize;
-        let mut enemy_count = raw.iter().filter(|p| p.team != self_team).count();
-        if enemy_count < enemy_size {
-            let found = enemies_from_loadouts(
-                ctx,
-                &pid,
-                &raw,
-                &ctx.local.puuid,
-                enemy_size - enemy_count,
-            )
-            .await;
-            let added = found.len();
-            for p in found {
-                if seen.insert(p.puuid.clone()) {
-                    raw.push(p);
-                }
-            }
-            enemy_count += added;
-            if added > 0 {
-                clog!("[crymora] loadouts pregame: {} inimigos", added);
-            }
-        }
-        if enemy_count < enemy_size {
-            for p in enemies_from_log(&pid, &raw, &ctx.local.puuid, enemy_size - enemy_count) {
-                if seen.insert(p.puuid.clone()) {
-                    raw.push(p);
-                }
-            }
-        }
-    }
+    /* Pré-jogo: só os aliados, por design. Nenhuma consulta a loadouts e
+     * nenhuma varredura do ShooterGame.log atrás de inimigos. */
 
     // core-game não traz nomes — resolve em lote (uma vez, fica em cache)
     let missing: Vec<String> = raw
@@ -649,35 +510,11 @@ async fn build_roster(
         players.len(),
         initial_budget - budget
     );
-    let (allies, mut enemies): (Vec<Value>, Vec<Value>) = players
+    let (allies, enemies): (Vec<Value>, Vec<Value>) = players
         .into_iter()
         .partition(|p| p["teamId"].as_str() == Some(self_team.as_str()));
 
-    // Fallback garantido: se enemies vazio, usa-se o time contrario
-    // do array Teams para garantir 5vs5 na UI. Isso ocorre quando o
-    // payload do pré-jogo n veio com EnemyTeam explícito.
-    if enemies.is_empty() {
-        if let Some(teams) = m["Teams"].as_array() {
-            for team in teams {
-                let tid = team["TeamID"].as_str();
-                if let Some(t) = tid {
-                    if t != &self_team {
-                        if let Some(plist) = team["Players"].as_array() {
-                            for p in plist {
-                                // buscar no raw o player correspondente
-                                if let Some(rp) = raw.iter().find(|r| r.puuid == p["puuid"].as_str().or_else(|| p["Subject"].as_str()).unwrap_or("")) {
-                                    enemies.push(build_player(rp, None, false));
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
     // modo/mapa: a presença própria já carrega (fallback no MatchInfo)
-    let _me = remote::priv_info(priv_me);
     let me = remote::priv_info(priv_me);
     let mode = if me.queue_id.is_empty() {
         m["MatchInfo"]["ModeID"].as_str().unwrap_or("").to_string()
@@ -693,6 +530,9 @@ async fn build_roster(
     Some(json!({
         "allies": allies,
         "enemyTeam": enemies,
+        /* pré-jogo: o time inimigo não é revelado (scouting = ban). A UI
+         * mostra um aviso no lugar da seção de inimigos. */
+        "enemiesHidden": phase == "PREGAME",
         "mode": mode,
         "mapKey": map_key,
     }))
@@ -1475,9 +1315,9 @@ mod tests {
         });
 
         assert!(pregame_hold("PREGAME", Some(&pending), &mut cache, 100));
-        assert!(pregame_hold("PREGAME", Some(&pending), &mut cache, 104));
-        /* 5s sem todos os elos → mostra com o que veio */
-        assert!(!pregame_hold("PREGAME", Some(&pending), &mut cache, 105));
+        assert!(pregame_hold("PREGAME", Some(&pending), &mut cache, 102));
+        /* RANK_WAIT_SECS sem todos os elos → mostra com o que veio */
+        assert!(!pregame_hold("PREGAME", Some(&pending), &mut cache, 104));
     }
 
     #[test]
@@ -1514,55 +1354,4 @@ mod tests {
         );
     }
 
-    #[test]
-    fn parses_enemy_puuids_from_game_log() {
-        let log = concat!(
-            "[..] Pregame_GetMatch ... 02b0d003 ... Response Code: [200]\n",
-            "[..] Subject had empty display name. aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa\n",
-            "[..] Subject had empty display name. bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb\n",
-            "[..] Subject had empty display name. bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb\n",
-            "[..] Subject had empty display name. cccccccc-cccc-cccc-cccc-cccccccccccc\n",
-            "[..] Subject had empty display name. dddddddd-dddd-dddd-dddd-dddddddddddd\n",
-            "[..] Subject had empty display name. eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee\n",
-            "[..] Subject had empty display name. ffffffff-ffff-ffff-ffff-ffffffffffff\n",
-            "[..] Subject had empty display name. 99999999-9999-9999-9999-999999999999\n",
-        );
-        let allies: HashSet<&str> =
-            ["aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"].into_iter().collect();
-        let out = parse_enemy_puuids(
-            log,
-            "02b0d003",
-            &allies,
-            "99999999-9999-9999-9999-999999999999",
-            5,
-        );
-        assert_eq!(out.len(), 5);
-        assert_eq!(out[0], "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb");
-        assert!(!out.contains(&"aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa".to_string()));
-        assert!(!out.contains(&"99999999-9999-9999-9999-999999999999".to_string()));
-    }
-
-    #[test]
-    fn enemy_log_anchor_stays_on_first_query_of_the_match() {
-        /* O app consulta o Pregame_GetMatch a cada tick; se a âncora
-         * fosse a última consulta, os inimigos (que aparecem no fim do
-         * agent-select) ficariam para trás. A âncora é a primeira. */
-        let log = concat!(
-            "[..] Pregame_GetMatch ... 02b0d003 ... Response Code: [200]\n",
-            "[..] Subject had empty display name. bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb\n",
-            "[..] Pregame_GetMatch ... 02b0d003 ... Response Code: [200]\n",
-            "[..] Subject had empty display name. cccccccc-cccc-cccc-cccc-cccccccccccc\n",
-            "[..] Pregame_GetMatch ... 11111111-1111-1111-1111-111111111111 ... Response Code: [200]\n",
-            "[..] Subject had empty display name. dddddddd-dddd-dddd-dddd-dddddddddddd\n",
-        );
-        let allies: HashSet<&str> = HashSet::new();
-        let out = parse_enemy_puuids(log, "02b0d003", &allies, "self", 10);
-        assert_eq!(
-            out,
-            vec![
-                "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb".to_string(),
-                "cccccccc-cccc-cccc-cccc-cccccccccccc".to_string(),
-            ]
-        );
-    }
 }
