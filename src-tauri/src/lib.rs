@@ -278,13 +278,6 @@ async fn settings_set(app: tauri::AppHandle, patch: Value) -> Result<(), String>
     settings::set(&app, patch)
 }
 
-#[tauri::command]
-async fn tracker_proxy(_method: String, _path: String, _body: Option<Value>, _bearer: Option<String>) -> Result<Value, String> {
-    // fase 2: webview escondida que carrega o tracker.gg de verdade
-    // (passa no Cloudflare legitimamente) e expõe o HTML praqui.
-    Err("tracker transport not wired yet".into())
-}
-
 /* ------------------------------------------------------------------ */
 /* boot                                                                */
 /* ------------------------------------------------------------------ */
@@ -370,7 +363,6 @@ pub fn run() {
             open_main_window,
             settings_get,
             settings_set,
-            tracker_proxy,
         ])
         .run(tauri::generate_context!())
         .expect("erro ao iniciar o Crymora");

@@ -13,10 +13,7 @@
  *   settings_get      → objeto de settings (settings.json)
  *   settings_set      → { patch: {...} }
  *   riot_status       → { clientRunning }
- *   open_external     → { url }
- *   tracker_proxy     → { method, path, body, bearer } (transporte nativo;
- *                       base neutralizada no patch; no rebuild o transporte
- *                       vira uma webview escondida que passa no Cloudflare)
+ *   open_external     → { url } (só https + hosts conhecidos)
  */
 
 const invoke = (cmd, args = {}) => window.__TAURI_INTERNALS__.invoke(cmd, args);
@@ -516,20 +513,10 @@ const Bridge = {
      * Se falhar, não abre nada (a permissão de opener foi removida). */
     invoke("open_external", { url }).catch((e) => diag("open_external: " + e));
   },
-  /* transporte nativo: no exe original a base do tracker_proxy é
-   * play-ascend.com/tracker — neutralizada p/ loopback no patch, então a
-   * sonda falha instantaneamente (connection refused) e sem custo. */
-  async proxyGet(path) {
-    try {
-      return await invoke("tracker_proxy", {
-        method: "GET", path, body: null, bearer: null,
-      });
-    } catch (e) { return null; }
-  },
 };
 
 /* ------------------------------------------------------------------ */
-/* twitch: sonda tracker.gg em segundo plano                           */
+/* identidade do jogador                                               */
 /* ------------------------------------------------------------------ */
 
 const A = "&";
@@ -543,85 +530,15 @@ const esc = (s) =>
       "'": A + "#39;",
     }[c]));
 
+/* Só formatação de Riot ID. A sonda de tracker.gg foi removida: era
+ * tráfego de scraping por jogador, sem valor de jogo e com custo de
+ * privacidade (consultava o perfil de estranhos em massa). O nome do
+ * objeto ficou para não mexer em 30 pontos de chamada. */
 const Twitch = {
-  TTL: 7 * 24 * 3600e3,   // achou canal → revalida só semanalmente
-  NEG_TTL: 30 * 60e3,     // sem canal/falha → tenta de novo em 30 min
-  active: 0,
-  MAX: 3,                  // no máx. 3 sondas simultâneas
-  cache: null,
-
-  _load() {
-    try { return JSON.parse(localStorage.getItem("twitch-cache") || "{}"); }
-    catch (e) { return {}; }
-  },
-  persist() {
-    try {
-      localStorage.setItem("twitch-cache", JSON.stringify(Twitch.cache || {}));
-    } catch (e) {}
-  },
-
   riotId(p) {
     const name = p.name ?? p.gameName ?? "";
     const tag = p.tag ?? p.tagLine ?? "";
     return tag ? `${name}#${tag}` : name;
-  },
-
-  /* consulta síncrona do cache — o roster é recriado a cada tick,
-   * então o botão tem que vir daqui e não de um campo no objeto */
-  cached(puuid) {
-    if (!Twitch.cache) Twitch.cache = Twitch._load();
-    const hit = Twitch.cache[puuid];
-    if (hit && hit.twitch && Date.now() - hit.ts < Twitch.TTL) {
-      return hit.twitch;
-    }
-    return null;
-  },
-
-  profilePath(riotId) {
-    const [name, tag] = riotId.split("#");
-    return `/valorant/profile/riot/${encodeURIComponent(name)}%23${encodeURIComponent(tag)}/overview`;
-  },
-
-  /* Extrai o canal de Twitch do conteúdo do perfil. O tracker.gg
-   * embute o estado da página (JSON) e/ou os links sociais no HTML. */
-  parseChannel(content) {
-    if (!content) return null;
-    let text = content;
-    if (typeof content === "object") {
-      // proxy pode devolver JSON já-parseado (texto embutido)
-      text = JSON.stringify(content);
-    }
-    const nextData = text.match(
-      /<script id="__NEXT_DATA__"[^>]*>([\s\S]*?)<\/script>/
-    );
-    const source = nextData ? nextData[1] : text;
-    const m = source.match(/twitch\.tv\/([A-Za-z0-9_]{3,25})/);
-    if (m && !["www", "directory", "videos", "p", "downloads"].includes(m[1].toLowerCase()))
-      return m[1];
-    return null;
-  },
-
-  probe(puuid, riotId) {
-    if (!Twitch.cache) Twitch.cache = Twitch._load();
-    const hit = Twitch.cache[puuid];
-    const ttl = hit && hit.twitch ? Twitch.TTL : Twitch.NEG_TTL;
-    if (hit && Date.now() - hit.ts < ttl) return Promise.resolve(hit.twitch);
-    return new Promise((resolve) => {
-      const run = async () => {
-        if (Twitch.active >= Twitch.MAX) return setTimeout(run, 350);
-        Twitch.active++;
-        let twitch = null;
-        try {
-          const res = await Bridge.proxyGet(Twitch.profilePath(riotId));
-          twitch = Twitch.parseChannel(res);
-        } catch (e) { /* offline/sem perfil → sem botão */ }
-        Twitch.cache[puuid] = { twitch, ts: Date.now() };
-        Twitch.active--;
-        Twitch.persist();
-        resolve(twitch);
-      };
-      run();
-    });
   },
 };
 
@@ -713,7 +630,7 @@ function avatarHTML(src, name, cls) {
 
 const State = {
   phase: "IDLE", lastPhase: null,
-  roster: null, rosterSeen: null, renderSig: null,
+  roster: null, renderSig: null,
   friends: null, friendsSig: null, selfPuuid: null,
   status: null, homeSig: null,
   trackerPlayer: null, trackerSig: null, modalPuuid: null,
@@ -878,10 +795,6 @@ function playerCard(p, isAlly, i = 0, party = null) {
   const lb = p.leaderboardRank
     ? `<span class="lb" title="${esc(t("lbPos"))}">#${esc(p.leaderboardRank)}</span>`
     : "";
-  const tw = p.puuid ? Twitch.cached(p.puuid) : null;
-  const btn = tw
-    ? `<button class="twitch" data-open="https://www.twitch.tv/${esc(tw)}" title="${esc(t("watchLiveName", { n: riotId }))}" aria-label="${esc(t("watchLiveName", { n: riotId }))}"><svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M4 3 3 6.5V20h4v2.5h2.5L12 20h4l5-5V3H4Zm14 11-3 3h-4l-2.5 2.5V17H7V5h11v9Z"/><path d="M11 8h2v5h-2zM15.5 8h2v5h-2z"/></svg></button>`
-    : "";
   /* grupo: mesma party = mesma cor. O Riot não manda PartyID no payload
    * da partida; o backend injeta o próprio grupo (API de party) e amigos
    * no lobby (presença). Só marca grupo com 2+ membros visíveis. */
@@ -898,11 +811,11 @@ function playerCard(p, isAlly, i = 0, party = null) {
     : "";
   /* acento do card: true=aliado, false=inimigo, null=neutro (mata-mata) */
   const accent = isAlly === true ? "ally" : isAlly === false ? "enemy" : "neutral";
-  return `<article class="pcard ${accent} ${tw ? "has-twitch" : ""} ${party ? "has-pm" : ""}" data-puuid="${esc(p.puuid ?? "")}" style="--i:${i}">
+  return `<article class="pcard ${accent} ${party ? "has-pm" : ""}" data-puuid="${esc(p.puuid ?? "")}" style="--i:${i}">
     ${avatarHTML(av, riotId, "pc-av")}
     <div class="pc-body">
       <div class="pc-top">
-        <span class="pc-name">${esc(riotId)}${p.isSelf ? ` <em class="you">${esc(t("you"))}</em>` : ""}</span>${pp}${btn}
+        <span class="pc-name">${esc(riotId)}${p.isSelf ? ` <em class="you">${esc(t("you"))}</em>` : ""}</span>${pp}
       </div>
       <div class="pc-meta">
         ${ico ? `<img class="pc-rank" src="${esc(ico)}" alt="" loading="lazy" />` : ""}
@@ -915,7 +828,7 @@ function playerCard(p, isAlly, i = 0, party = null) {
   </article>`;
 }
 
-/* extração única do roster — usada no render e na sonda Twitch */
+/* extração única do roster — usada no render */
 function rosterPlayers(roster) {
   const allies = roster.allies ?? roster.myTeam ?? [];
   const enemies = roster.enemyTeam ?? [];
@@ -1064,7 +977,6 @@ function profileHTML(p, inModal) {
   const riotId = Twitch.riotId(p);
   const tier = p.rankResolved && p.rank?.tier != null ? p.rank.tier : p.competitiveTier;
   const av = p.avatar || agentIcon(p.agent ?? p.characterId ?? p.character);
-  const tw = p.puuid ? Twitch.cached(p.puuid) : null;
   const actTier = p.actPeakTier ?? null;
   const prev = p.prevAct ?? {};
   const form = Array.isArray(p.form) ? p.form.slice(-5).reverse() : [];
@@ -1093,7 +1005,6 @@ function profileHTML(p, inModal) {
         <h2>${esc(riotId)}${p.isSelf ? ` <em class="you">${esc(t("you"))}</em>` : ""}</h2>
         ${bits.length ? `<p class="tr-sub">${bits.join(" · ")}</p>` : ""}
       </div>
-      ${tw ? `<button class="twitch" data-open="https://www.twitch.tv/${esc(tw)}" title="${esc(t("watchLive"))}"><svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M4 3 3 6.5V20h4v2.5h2.5L12 20h4l5-5V3H4Zm14 11-3 3h-4l-2.5 2.5V17H7V5h11v9Z"/><path d="M11 8h2v5h-2zM15.5 8h2v5h-2z"/></svg></button>` : ""}
       ${inModal ? `<button class="tr-close" data-close="1" title="${esc(t("close"))}" aria-label="${esc(t("close"))}">✕</button>` : ""}
     </div>
     <div class="tr-ranks">
@@ -1531,21 +1442,6 @@ async function tickFriends() {
   renderHome();
 }
 
-/* sonda Twitch só para jogadores novos desta partida */
-async function probeNewPlayers(roster) {
-  const { allies, enemies } = rosterPlayers(roster);
-  const players = [...allies, ...enemies];
-  const sig = players.map((p) => p.puuid).sort().join(",");
-  if (sig === State.rosterSeen) return;
-  State.rosterSeen = sig;
-  await Promise.all(
-    players.filter((p) => p.puuid && Twitch.riotId(p)).map((p) =>
-      Twitch.probe(p.puuid, Twitch.riotId(p))
-    )
-  );
-  renderRoster(roster); // re-render: botões saem do cache agora
-}
-
 /* ------------------------------------------------------------------ */
 /* polling leve (mesmo desenho do app original)                        */
 /* ------------------------------------------------------------------ */
@@ -1588,7 +1484,6 @@ async function tick() {
     State.modalPuuid = null;
     State.friends = null;
     State.friendsSig = null;
-    State.rosterSeen = null;
     State.renderSig = null;
     State.homeSig = null;
     Friends.seen = null;
@@ -1622,7 +1517,6 @@ async function tick() {
               fresh.peakTier, fresh.actPeakTier, fresh.actWins,
               fresh.actGames, fresh.accountLevel, fresh.leaderboardRank,
               fresh.form, fresh.prevAct, fresh.careerGames,
-              fresh.puuid ? +!!Twitch.cached(fresh.puuid) : 0,
             ])
           : null;
         if (sig != null && sig !== State.trackerSig &&
@@ -1639,11 +1533,9 @@ async function tick() {
         mapName(roster.mapKey ?? roster.map),
       ].filter(Boolean).join(" · ");
       if (sub) $("#match-sub").textContent = sub;
-      probeNewPlayers(roster);
     }
   } else {
     State.roster = null;
-    State.rosterSeen = null;
     State.renderSig = null; // próxima partida re-anima os cards
     $("#teams").innerHTML = `<p class="empty">${esc(t("noMatch"))}</p>`;
     applySplash(null);
@@ -1791,7 +1683,7 @@ async function boot() {
 
   // clique no card → modal de detalhes (botão Twitch/links externos não contam)
   $("#teams").addEventListener("click", (e) => {
-    if (e.target.closest(".twitch, [data-open], .pm")) return;
+    if (e.target.closest("[data-open], .pm")) return;
     const card = e.target.closest(".pcard");
     if (card?.dataset.puuid) openDetails(card.dataset.puuid);
   });

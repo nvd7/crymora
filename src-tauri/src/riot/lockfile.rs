@@ -8,7 +8,11 @@ use std::path::PathBuf;
 
 #[derive(Clone, Debug)]
 pub struct Lockfile {
+    /* name/pid fazem parte do formato e servem para diagnóstico manual;
+     * o app só usa porta e senha */
+    #[allow(dead_code)]
     pub name: String,
+    #[allow(dead_code)]
     pub pid: u32,
     pub port: u16,
     pub password: String,
