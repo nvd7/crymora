@@ -13,6 +13,7 @@ use std::time::Duration;
 
 use tauri::{AppHandle, Manager};
 
+use super::limits;
 use super::lockfile;
 use super::region::{self, Region};
 use super::remote::{self, Ctx, Local, MmrInfo};
@@ -21,15 +22,24 @@ use crate::Snapshot;
 use crate::clog;
 
 /* Intervalo do poll: mais curto durante partida (placar/roster mudam) e
- * mais folgado no menu. O foco da janela roda um tick na hora — quem
- * volta com Alt+Tab não espera este intervalo. */
-const TICK_IDLE_MS: u64 = 1500;
-const TICK_ACTIVE_MS: u64 = 1000;
+ * mais folgado no menu, sempre com jitter — cadência de metrônomo é um
+ * fingerprint de bot. O foco da janela roda um tick na hora — quem volta
+ * com Alt+Tab não espera este intervalo. */
+const TICK_IDLE_MS: u64 = 2600;
+const TICK_ACTIVE_MS: u64 = 1500;
+const TICK_JITTER_MS: u64 = 700;
 const MMR_TTL_SECS: i64 = 600; // 10 min — mesmo espírito do cache original
 const LOG_FRESH_SECS: u64 = 180; // ShooterGame.log escrito há pouco
-/* Pré-jogo: espera os elos de todos antes de revelar a partida. Se o pd
- * recusar alguma consulta, libera a tela com o que veio. */
-const RANK_WAIT_SECS: i64 = 5;
+/* Pré-jogo: espera os elos dos aliados antes de montar a tela. Se o pd
+ * recusar alguma consulta, libera com o que veio. */
+const RANK_WAIT_SECS: i64 = 3;
+
+/* Orçamento de MMR por tick. O pd é local, mas o perfil de tráfego
+ * importa: nada de 10 requests em paralelo para "resolver o time inteiro
+ * no primeiro tick". 2 por tick, espaçados pelo limits::REMOTE. */
+const MMR_BUDGET_PREGAME: i64 = 2;
+const MMR_BUDGET_LIVE: i64 = 2;
+const MMR_BUDGET_FRIENDS: i64 = 2;
 
 /* Próprio grupo: o payload da partida não traz PartyID (o Riot removeu),
  * então a API de party do glz é consultada com TTL. 20 s acompanha
@@ -470,16 +480,14 @@ async fn build_roster(
         }
     }
 
-    // enriquecimento MMR — sequencial pra não metralhar o pd.
-    // No pré-jogo o roster é curto e a partida começa logo: busca todos
-    // de uma vez para os dois times (inclusive nick oculto) já aparecerem
-    // com rank no primeiro tick.
+    // enriquecimento MMR — no máximo 2 por tick, cada um espaçado pelo
+    // limits::REMOTE. O resto resolve nos ticks seguintes (cache 10 min).
     let mut players = Vec::with_capacity(raw.len());
-    let mut budget = if phase == "PREGAME" { raw.len() } else { 4 };
+    let mut budget = if phase == "PREGAME" { MMR_BUDGET_PREGAME } else { MMR_BUDGET_LIVE };
     let initial_budget = budget;
     let now = unix_now();
-    /* monta a lista de quem precisa de consulta e dispara tudo de uma vez;
-     * cache-fresco/backoff não consome cota */
+    /* monta a lista de quem precisa de consulta; cache-fresco/backoff
+     * não consome cota */
     let mut fetch: Vec<String> = Vec::new();
     for p in &raw {
         if budget > 0 && mmr_needs_fetch(cache, &p.puuid, now) {
@@ -722,10 +730,10 @@ async fn build_friends(
     let mut out = Vec::new();
     let mut dirty = false;
     /* elo dos amigos: presença e friends-cache podem estar de um ato
-     * antigo; o pd é a fonte do ato vigente. Até 4 consultas novas por
-     * tick, agora em paralelo — o resto completa nos ticks seguintes. */
+     * antigo; o pd é a fonte do ato vigente. Até 2 consultas novas por
+     * tick (o resto completa nos ticks seguintes). */
     let now = unix_now();
-    let mut mmr_budget = 4;
+    let mut mmr_budget = MMR_BUDGET_FRIENDS;
     let mut mmr_fetch: Vec<String> = Vec::new();
     if ctx.is_some() {
         for fr in &friends {
@@ -1190,7 +1198,10 @@ pub async fn poll_loop(
         rp.update(enabled, &info.phase, &info.details, &info.state);
 
         let wait = if info.phase == "MENUS" { TICK_IDLE_MS } else { TICK_ACTIVE_MS };
-        tokio::time::sleep(Duration::from_millis(wait)).await;
+        tokio::time::sleep(Duration::from_millis(
+            wait + limits::jitter(TICK_JITTER_MS),
+        ))
+        .await;
     }
 }
 

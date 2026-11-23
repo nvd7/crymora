@@ -12,7 +12,11 @@
  *                /mmr/v1/players/{puuid}, /name/v1/players/{ids}
  *   versão     : https://valorant-api.com/v1/version (CDN público)
  * Cabeçalhos remotos: Bearer + X-Riot-Entitlements-JWT +
- *   X-Riot-ClientVersion + X-Riot-ClientPlatform (JSON base64). */
+ *   X-Riot-ClientVersion + X-Riot-ClientPlatform (JSON base64).
+ *
+ * Toda chamada passa pelo `limits` (espaçamento + jitter + teto/minuto):
+ * o perfil de tráfego fica parecido com o de um cliente comum, não com o
+ * de um scraper. 429 não é repetido em loop — o chamador faz backoff. */
 
 use base64::engine::general_purpose::{STANDARD, URL_SAFE_NO_PAD};
 use base64::Engine;
@@ -21,13 +25,48 @@ use std::collections::HashMap;
 use std::sync::LazyLock;
 use std::time::Duration;
 
+use super::limits;
 use super::region::Region;
 use crate::clog;
 
-pub const PLATFORM_JSON: &str = concat!(
-    "{\"platformType\":\"PC\",\"platformOS\":\"Windows\",",
-    "\"platformOSVersion\":\"10.0.19042\",\"platformChipset\":\"Unknown\"}"
-);
+/// Build real do Windows (o cliente oficial manda a versão verdadeira;
+/// um valor fixo é um fingerprint). Lido uma vez do registro; fallback
+/// para o build do Win10 22H2 se a consulta falhar.
+fn windows_build() -> String {
+    let out = std::process::Command::new("reg")
+        .args([
+            "query",
+            r"HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion",
+            "/v",
+            "CurrentBuildNumber",
+        ])
+        .output();
+    if let Ok(o) = out {
+        let txt = String::from_utf8_lossy(&o.stdout);
+        if let Some(v) = txt
+            .lines()
+            .find(|l| l.contains("CurrentBuildNumber"))
+            .and_then(|l| l.split_whitespace().last())
+        {
+            if v.len() <= 6 && v.chars().all(|c| c.is_ascii_digit()) {
+                return v.to_string();
+            }
+        }
+    }
+    "19045".to_string()
+}
+
+/// X-Riot-ClientPlatform. Formato do cliente oficial:
+/// 10.0.<build>.1.256.64bit
+pub fn platform_json() -> &'static str {
+    static PLATFORM: LazyLock<String> = LazyLock::new(|| {
+        format!(
+            "{{\"platformType\":\"PC\",\"platformOS\":\"Windows\",\"platformOSVersion\":\"10.0.{}.1.256.64bit\",\"platformChipset\":\"Unknown\"}}",
+            windows_build()
+        )
+    });
+    PLATFORM.as_str()
+}
 
 /* clientes compartilhados (conexões reutilizadas entre ticks) */
 static LOCAL: LazyLock<reqwest::Client> = LazyLock::new(|| {
@@ -50,23 +89,44 @@ static REMOTE: LazyLock<reqwest::Client> = LazyLock::new(|| {
 /* API local                                                           */
 /* ------------------------------------------------------------------ */
 
+/// Resposta → JSON. 429 respeita Retry-After e devolve erro (o chamador
+/// decide o backoff); corpo de erro vira mensagem curta, sem despejar
+/// payload inteiro no log.
+async fn finish(r: reqwest::Response) -> Result<Value, String> {
+    let status = r.status();
+    if status == reqwest::StatusCode::TOO_MANY_REQUESTS {
+        let wait = r
+            .headers()
+            .get(reqwest::header::RETRY_AFTER)
+            .and_then(|v| v.to_str().ok())
+            .and_then(|v| v.parse::<u64>().ok())
+            .unwrap_or(3)
+            .clamp(1, 10);
+        tokio::time::sleep(Duration::from_secs(wait)).await;
+        return Err(format!("HTTP 429 (retry em {wait}s)"));
+    }
+    let text = r.text().await.map_err(|e| e.to_string())?;
+    if !status.is_success() {
+        let brief: String = text.chars().take(140).collect();
+        return Err(format!("HTTP {status}: {brief}"));
+    }
+    serde_json::from_str(&text).map_err(|e| e.to_string())
+}
+
 /// GET na API local. O lockfile é relido a cada chamada — porta/senha
 /// mudam sempre que o Riot Client reinicia.
 pub async fn local(path: &str) -> Result<Value, String> {
+    limits::LOCAL.acquire().await;
     let lf = super::lockfile::read().ok_or("Riot client not running")?;
     let url = format!("https://127.0.0.1:{}{}", lf.port, path);
     let auth = STANDARD.encode(format!("riot:{}", lf.password));
-    LOCAL
+    let r = LOCAL
         .get(&url)
         .header(reqwest::header::AUTHORIZATION, format!("Basic {auth}"))
         .send()
         .await
-        .map_err(|e| e.to_string())?
-        .error_for_status()
-        .map_err(|e| e.to_string())?
-        .json()
-        .await
-        .map_err(|e| e.to_string())
+        .map_err(|e| e.to_string())?;
+    finish(r).await
 }
 
 /// POST na API local (mesmo Basic riot:{senha}). O Riot Client expõe
@@ -76,6 +136,7 @@ pub async fn local(path: &str) -> Result<Value, String> {
 pub async fn local_post(path: &str, body: &Value) -> Result<Value, String> {
     let mut last = String::from("local request failed");
     for _ in 0..2 {
+        limits::LOCAL.acquire().await;
         let lf = super::lockfile::read().ok_or("Riot client not running")?;
         let url = format!("https://127.0.0.1:{}{}", lf.port, path);
         let auth = STANDARD.encode(format!("riot:{}", lf.password));
@@ -297,7 +358,20 @@ impl Ctx {
             )
             .header("X-Riot-Entitlements-JWT", &self.local.entitlements_token)
             .header("X-Riot-ClientVersion", &self.client_version)
-            .header("X-Riot-ClientPlatform", STANDARD.encode(PLATFORM_JSON.as_bytes()))
+            .header(
+                "X-Riot-ClientPlatform",
+                STANDARD.encode(platform_json().as_bytes()),
+            )
+    }
+
+    async fn get(&self, url: &str) -> Result<Value, String> {
+        limits::REMOTE.acquire().await;
+        let r = self
+            .authed(reqwest::Method::GET, url)
+            .send()
+            .await
+            .map_err(|e| e.to_string())?;
+        finish(r).await
     }
 
     pub async fn glz(&self, path: &str) -> Result<Value, String> {
@@ -305,44 +379,26 @@ impl Ctx {
             "https://glz-{}-1.{}.a.pvp.net{}",
             self.region.region, self.region.shard, path
         );
-        self.authed(reqwest::Method::GET, &url)
-            .send()
-            .await
-            .map_err(|e| e.to_string())?
-            .error_for_status()
-            .map_err(|e| e.to_string())?
-            .json()
-            .await
-            .map_err(|e| e.to_string())
+        self.get(&url).await
     }
 
     pub async fn pd(&self, path: &str) -> Result<Value, String> {
         let url = format!("https://pd.{}.a.pvp.net{}", self.region.shard, path);
-        self.authed(reqwest::Method::GET, &url)
-            .send()
-            .await
-            .map_err(|e| e.to_string())?
-            .error_for_status()
-            .map_err(|e| e.to_string())?
-            .json()
-            .await
-            .map_err(|e| e.to_string())
+        self.get(&url).await
     }
 
     /// Pedido autenticado com corpo no pd — o name-service é PUT
     /// (POST devolve 405 Method Not Allowed)
     async fn pd_send(&self, method: reqwest::Method, path: &str, body: &Value) -> Result<Value, String> {
+        limits::REMOTE.acquire().await;
         let url = format!("https://pd.{}.a.pvp.net{}", self.region.shard, path);
-        self.authed(method, &url)
+        let r = self
+            .authed(method, &url)
             .json(body)
             .send()
             .await
-            .map_err(|e| e.to_string())?
-            .error_for_status()
-            .map_err(|e| e.to_string())?
-            .json()
-            .await
-            .map_err(|e| e.to_string())
+            .map_err(|e| e.to_string())?;
+        finish(r).await
     }
 
     /// Riot IDs em lote. Ordem:
@@ -437,6 +493,7 @@ pub async fn client_version() -> String {
     static CACHED: tokio::sync::OnceCell<String> = tokio::sync::OnceCell::const_new();
     CACHED
         .get_or_init(|| async {
+            limits::REMOTE.acquire().await;
             match REMOTE.get("https://valorant-api.com/v1/version").send().await {
                 Ok(r) => r
                     .json::<Value>()
@@ -562,6 +619,7 @@ async fn seasons_desc() -> Vec<(String, i64)> {
     SEASONS
         .get_or_init(|| async {
             let mut out: Vec<(String, i64)> = Vec::new();
+            limits::REMOTE.acquire().await;
             if let Ok(r) = REMOTE.get("https://valorant-api.com/v1/seasons").send().await {
                 if let Ok(v) = r.json::<Value>().await {
                     out = v["data"]
