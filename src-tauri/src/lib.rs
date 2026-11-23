@@ -51,6 +51,43 @@ pub type Shared = Arc<Mutex<Snapshot>>;
  * %APPDATA%\crymora\debug.log — é daí que sai o diagnóstico real.     */
 /* ------------------------------------------------------------------ */
 
+/// Máscara de PUUID/IDs de 36 caracteres (UUID). O debug.log é um arquivo
+/// em disco que o usuário pode compartilhar num relatório de bug; identidade
+/// de terceiros (puuid de aliado, de amigo) não tem por que sobreviver a
+/// isso. Fica o prefixo de 8, o suficiente para correlacionar linhas.
+fn redact_ids(s: &str) -> String {
+    fn is_uuid(c: &[char]) -> bool {
+        if c.len() != 36 {
+            return false;
+        }
+        for (i, ch) in c.iter().enumerate() {
+            let ok = match i {
+                8 | 13 | 18 | 23 => *ch == '-',
+                _ => ch.is_ascii_hexdigit(),
+            };
+            if !ok {
+                return false;
+            }
+        }
+        true
+    }
+
+    let chars: Vec<char> = s.chars().collect();
+    let mut out = String::with_capacity(s.len());
+    let mut i = 0;
+    while i < chars.len() {
+        if i + 36 <= chars.len() && is_uuid(&chars[i..i + 36]) {
+            out.extend(&chars[i..i + 8]);
+            out.push_str("-redacted");
+            i += 36;
+        } else {
+            out.push(chars[i]);
+            i += 1;
+        }
+    }
+    out
+}
+
 pub fn log_append(args: std::fmt::Arguments) {
     use std::io::Write as _;
     let Some(local) = std::env::var_os("APPDATA") else { return };
@@ -75,7 +112,8 @@ pub fn log_append(args: std::fmt::Arguments) {
         .duration_since(std::time::UNIX_EPOCH)
         .map(|d| d.as_secs())
         .unwrap_or(0);
-    let _ = writeln!(f, "[{t}] {args}");
+    let line = redact_ids(&args.to_string());
+    let _ = writeln!(f, "[{t}] {line}");
 }
 
 #[macro_export]
@@ -178,7 +216,7 @@ async fn open_external(url: String, app: tauri::AppHandle) -> Result<(), String>
 
 #[cfg(test)]
 mod tests {
-    use super::parse_external;
+    use super::{parse_external, redact_ids};
 
     #[test]
     fn open_external_accepts_only_known_hosts() {
@@ -192,6 +230,25 @@ mod tests {
         assert!(parse_external("https://user@tracker.gg/").is_err());
         assert!(parse_external("https://tracker.gg:8443/").is_err());
         assert!(parse_external("https://twitch.tv.evil.com/").is_err());
+    }
+
+    #[test]
+    fn debug_log_redacts_puuids() {
+        let line = "[crymora] roster aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee entrou";
+        assert_eq!(
+            redact_ids(line),
+            "[crymora] roster aaaaaaaa-redacted entrou"
+        );
+        /* id curto, maiúsculo fora de padrão e texto comum ficam intactos */
+        assert_eq!(redact_ids("nada aqui 12345"), "nada aqui 12345");
+        assert_eq!(
+            redact_ids("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"),
+            "aaaaaaaa-redacted"
+        );
+        assert_eq!(
+            redact_ids("AAAAAAAABBBBCCCCDDDDEEEEEEEEEEEE"),
+            "AAAAAAAABBBBCCCCDDDDEEEEEEEEEEEE"
+        );
     }
 }
 
