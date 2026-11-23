@@ -312,10 +312,13 @@ const I18N = {
     setMotion: "Animações", setBg: "Efeitos de fundo",
     setShowLevel: "Nível da conta", setShowPeak: "Pico de carreira", setShowLb: "Leaderboard",
     setSecurityTitle: "Somente leitura",
-    setSecurityNote: "Sem memória do jogo, injeção, overlay ou automação. O app exibe os dois times no pré-jogo; veja o aviso de política da Riot no LEIA-ME.",
+    setSecurityNote: "Sem memória do jogo, injeção, overlay ou automação. O pré-jogo mostra só o seu time — os inimigos aparecem quando a partida começa.",
     setPrivacyTitle: "Conexões mínimas",
-    setPrivacyNote: "Só Riot (cliente local, glz/pd) e o CDN público de ícones. Nenhuma telemetria ou backend próprio.",
-    aboutEdition: "Crymora · v0.1.1",
+    setPrivacyNote: "Só Riot (cliente local, glz/pd) e o CDN público de ícones. Requisições espaçadas, sem telemetria e sem backend próprio.",
+    setPrivacyMode: "Modo privado",
+    setPrivacyModeHint: "Não grava caches de elo e amigos em disco.",
+    aboutEdition: "Crymora · v0.2.0",
+    connIdle: "Desconectado",
     setBoot: "Iniciar com o Windows",
     setAlerts: "Alertas de partida", setTheme: "Cor de destaque",
     setDiscord: "Presença no Discord",
@@ -396,10 +399,13 @@ const I18N = {
     setMotion: "Animations", setBg: "Background effects",
     setShowLevel: "Account level", setShowPeak: "Career peak", setShowLb: "Leaderboard",
     setSecurityTitle: "Read-only",
-    setSecurityNote: "No game memory, injection, overlay, or automation. The app shows both teams in pre-game; see the Riot policy notice in the README.",
+    setSecurityNote: "No game memory, injection, overlay, or automation. Pre-game shows only your team — enemies appear once the match starts.",
     setPrivacyTitle: "Minimal connections",
-    setPrivacyNote: "Only Riot (local client, glz/pd) and the public icon CDN. No telemetry or custom backend.",
-    aboutEdition: "Crymora · v0.1.1",
+    setPrivacyNote: "Only Riot (local client, glz/pd) and the public icon CDN. Paced requests, no telemetry, no custom backend.",
+    setPrivacyMode: "Private mode",
+    setPrivacyModeHint: "Does not write rank and friend caches to disk.",
+    aboutEdition: "Crymora · v0.2.0",
+    connIdle: "Disconnected",
     setBoot: "Launch with Windows",
     setAlerts: "Match alerts", setTheme: "Accent color",
     setDiscord: "Discord presence",
@@ -1473,6 +1479,8 @@ async function tick() {
   setPhase(phase ?? "IDLE");
   State.status = rs ?? null;
   $("#conn").classList.toggle("on", !!rs?.clientRunning);
+  const connLabel = $("#conn .conn-label");
+  if (connLabel) connLabel.textContent = rs?.clientRunning ? t("trayOn") : t("trayOff");
 
   /* troca de conta no Riot Client: descarta perfil/amigos da sessão antiga.
    * O backend relê o token a cada tick e zera a região; aqui só limpamos
@@ -1571,8 +1579,10 @@ async function boot() {
   $("#set-boot").checked = !!s.launchOnBoot;
   $("#set-alerts").checked = !(s.trackedInGameAlertsEnabled === false);
   $("#set-discord").checked = !!s.discordRpEnabled;
+  $("#set-privacy").checked = !!s.privacyMode;
   Toasts.enabled = !(s.trackedInGameAlertsEnabled === false);
   $("#app-version").textContent = t("aboutEdition");
+  $("#rail-version").textContent = t("aboutEdition").replace(/^Crymora · /, "");
 
   /* renomear a janela pro nome novo (o exe em si continua
    * ascend-companion.exe até o rebuild — atalho/autostart dependem dele) */

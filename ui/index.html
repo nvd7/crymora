@@ -12,22 +12,32 @@
   <aside id="rail">
     <button class="mark is-active" id="home-btn" type="button" title="Início" data-i18n-title="tabHome" aria-label="Início">
       <img class="mark-logo" src="/assets/logo.png" alt="" aria-hidden="true" />
+      <span class="mark-name">Crymora</span>
     </button>
+
     <nav id="tabs" role="tablist">
       <button class="tab" role="tab" data-view="match" title="Partida" data-i18n-title="tabMatch">
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="none"><path d="M4 6h16M4 12h10M4 18h13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true"><path d="M4 6h16M4 12h10M4 18h13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <span class="tab-label" data-i18n="tabMatch">Partida</span>
       </button>
       <button class="tab" role="tab" data-view="tracker" title="Tracker" data-i18n-title="tabTracker">
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="none"><path d="M3 12h4l2-7 4 14 2-7h6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true"><path d="M3 12h4l2-7 4 14 2-7h6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span class="tab-label" data-i18n="tabTracker">Tracker</span>
       </button>
       <button class="tab" role="tab" data-view="friends" title="Amigos" data-i18n-title="tabFriends">
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="none"><circle cx="9" cy="8" r="3.2" stroke="currentColor" stroke-width="1.8"/><path d="M3.5 19c.6-3 2.8-4.6 5.5-4.6S13.9 16 14.5 19" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="17" cy="9" r="2.4" stroke="currentColor" stroke-width="1.8"/><path d="M16 14.6c2.3.2 3.9 1.6 4.4 4.1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true"><circle cx="9" cy="8" r="3.2" stroke="currentColor" stroke-width="1.8"/><path d="M3.5 19c.6-3 2.8-4.6 5.5-4.6S13.9 16 14.5 19" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="17" cy="9" r="2.4" stroke="currentColor" stroke-width="1.8"/><path d="M16 14.6c2.3.2 3.9 1.6 4.4 4.1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        <span class="tab-label" data-i18n="tabFriends">Amigos</span>
       </button>
       <button class="tab" role="tab" data-view="settings" title="Ajustes" data-i18n-title="tabSettings">
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="none"><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.8"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.8"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        <span class="tab-label" data-i18n="tabSettings">Ajustes</span>
       </button>
     </nav>
-    <div id="conn" class="conn" title="Estado da sessão"><span class="dot"></span></div>
+
+    <div class="rail-foot">
+      <div id="conn" class="conn" title="Estado da sessão"><span class="dot"></span><span class="conn-label" data-i18n="connIdle">Desconectado</span></div>
+      <span class="rail-ver" id="rail-version"></span>
+    </div>
   </aside>
 
   <main id="main">
@@ -184,7 +194,7 @@
           </span>
           <span class="set-label">
             <span data-i18n="setPrivacyTitle">Conexões mínimas</span>
-            <small class="set-hint" data-i18n="setPrivacyNote">Só Riot (cliente local, glz/pd) e o CDN público de ícones. Nenhuma telemetria ou backend próprio.</small>
+            <small class="set-hint" data-i18n="setPrivacyNote">Só Riot (cliente local, glz/pd) e o CDN público de ícones. Requisições espaçadas, sem telemetria e sem backend próprio.</small>
           </span>
         </div>
 
