@@ -1,10 +1,10 @@
-Crymora 0.1.2 — instalador final
+Crymora 0.2.0 — instalador final
 ================================
 
-Arquivo : Crymora_0.1.2_x64-setup.exe
-Tamanho : 3.409.299 bytes (3,25 MiB)
-SHA-256 : B0AD3FC0DA785662B1A592C265862E241CC10B2E2134CCA1F9A61D522985DB7F
-Gerado  : 01/11/2026 23:25
+Arquivo : Crymora_0.2.0_x64-setup.exe
+Tamanho : 3.411.299 bytes (3,25 MiB)
+SHA-256 : 2D2AA2431FDB6E51E570DF984BEA06DEB27FEAB23B744E955764DCE3C5597AD8
+Gerado  : 23/11/2026 16:14
 
 Instalação
 ----------
@@ -18,11 +18,21 @@ O executável não é assinado digitalmente (não há certificado de code signin
 O Windows SmartScreen pode exibir um aviso na primeira execução:
 "Mais informações" → "Executar assim mesmo".
 
+Novidades da 0.2.0
+------------------
+- Inimigos NÃO aparecem mais no pré-jogo. O roster de pré-jogo traz apenas o
+  time aliado; os inimigos entram quando a partida começa, como no jogo.
+- Todo request passa por um pacer (intervalo mínimo + jitter) e por um teto
+  por minuto. As consultas de elo são limitadas por tick e resolvem no cache.
+- Modo privado nos Ajustes: caches de elo e amigos deixam de ser gravados.
+- PUUIDs são redigidos no debug.log antes de qualquer escrita.
+- Layout novo: sidebar rotulada, início em bento, times lado a lado.
+
 Presença no Discord
 -------------------
 - Opcional e desligada por padrão (Ajustes → Presença no Discord).
 - Mostra o mapa e o modo durante o pré-jogo/partida, o placar ao vivo
-  (ex.: 7 – 5), o tempo desde que o Crymora abriu, a logo do app e um
+  (ex.: 7 — 5), o tempo desde que o Crymora abriu, a logo do app e um
   botão para o GitHub.
 - O Discord não exibe botões de Rich Presence para a própria conta que
   transmite a presença. Para ver o botão "GitHub", abra o perfil em outra
@@ -43,21 +53,22 @@ Segurança
 ---------
 - Somente leitura: APIs locais do Riot Client e logs. Sem memória do jogo,
   injeção, hooks, overlay, automação de input ou alteração de arquivos do jogo.
-- Pré-jogo e partida: o roster mostra os dois times (nick, rank e nível),
-  inclusive os inimigos antes da partida. Os inimigos vêm do endpoint local
-  de loadouts; o log do jogo fica como reserva. Veja o AVISO abaixo.
-- Links externos limitados a tracker.gg e twitch.tv (https), validados no Rust.
-- CSP restritiva, sem permissão de opener para a página, logs com rotação.
+- Pré-jogo: apenas o time aliado. Nenhuma consulta a loadouts de partida e
+  nenhuma leitura de PUUID no log do jogo.
+- Nenhuma sonda a tracker.gg ou Twitch; links externos ficam limitados aos
+  hosts https permitidos e validados no Rust.
+- CSP restritiva com freezePrototype, sem permissão de opener, logs com
+  redação de identificadores.
 
 Desempenho
 ----------
 - Volta com Alt+Tab: ao recuperar o foco, o app roda uma atualização na
   hora e só então redesenha (não espera o próximo ciclo).
-- Verificação contínua: ~1,5 s no menu e ~1 s durante a partida; as
-  consultas de elo rodam em paralelo.
-- Pré-jogo: a partida (times e ranks) só aparece quando todos os elos
-  estão confirmados — unranked confirmado também conta. Se alguma
-  consulta falhar, a tela libera em até 5 s com o que tiver.
+- Verificação contínua: ~2,6 s no menu e ~1,5 s durante a partida, com
+  jitter de ±0,7 s.
+- Elo por tick: até 2 jogadores por ciclo; o restante vem do cache de 10 min.
+- Pré-jogo: a partida (times e ranks) aparece quando os elos do time aliado
+  estão confirmados — unranked confirmado também conta.
 
 Política da Riot
 ----------------
@@ -67,25 +78,13 @@ uma lista pública de apps seguros e não garante apps de terceiros; use por
 sua conta e risco. O app não é cheat: não lê memória do jogo, não injeta,
 não cria overlay, não automatiza input e não altera arquivos do jogo.
 
-AVISO IMPORTANTE: esta versão mostra os inimigos já no pré-jogo, com
-rank/level. A Riot classifica "scouting" (ver stats de adversários antes
-da partida) como uso NÃO aprovado e afirma que apps não autorizados que
-puxam informação oculta do cliente podem resultar em banimento. Use por
-sua conta e risco; não compartilhe com quem não aceitou esse risco.
-
 Privacidade
 -----------
 - Nenhuma telemetria e nenhum servidor próprio: os dados ficam na máquina.
 - Conexões: APIs locais do Riot Client, endpoints do próprio Riot (glz/pd)
   com o token local, e CDN pública valorant-api.com para ícones/mapas.
 - Discord: apenas o pipe local do cliente, quando a presença está ligada.
-- Links externos só abrem tracker.gg e twitch.tv (https).
-
-Observação
-----------
-A troca de conta agora é detectada pelo puuid mesmo quando a sessão anterior
-cai para "offline" no meio da troca: o nick próprio e o cache de amigos são
-refeitos. Validado com uma troca de conta real.
+- Modo privado desliga a gravação dos caches de elo e amigos.
 
 Links
 -----
