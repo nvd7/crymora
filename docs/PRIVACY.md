@@ -17,12 +17,11 @@ O Crymora foi feito para funcionar inteiramente na sua máquina. Esta página de
 | Lockfile do Riot Client | Descobrir porta e token da sessão local | Instalação do Riot Client |
 | Token de sessão | Autenticar chamadas às APIs do próprio Riot | Apenas em memória |
 | Presenças e amigos | Montar a lista de amigos | API local do Riot |
-| Partida e roster | Mostrar pré-jogo e jogo ao vivo | API local do Riot |
+| Partida e roster | Mostrar o time aliado no pré-jogo e o jogo ao vivo | API local do Riot |
 | Elos e MMR | Exibir rank, RR, pico e estatísticas | API do Riot (PD) |
-| `loadouts` do pré-jogo | Obter o `Subject` dos 10 jogadores | API local do Riot |
-| `ShooterGame.log` | Reserva dos puuids inimigos no pré-jogo | Pasta de logs do Valorant |
 | Configurações | Guardar preferências da UI | `%APPDATA%\crymora\settings.json` |
-| Log de diagnóstico | Ajudar a diagnosticar problemas | `%APPDATA%\crymora\debug.log` |
+| Caches de elo e amigos | Evitar consultas repetidas (10 min) | `%APPDATA%\crymora\*.json` — desligado no modo privado |
+| Log de diagnóstico | Ajudar a diagnosticar problemas | `%APPDATA%\crymora\debug.log` (PUUIDs redigidos) |
 
 ## Conexões de rede
 

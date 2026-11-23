@@ -23,16 +23,16 @@ Partida, amigos, tracker e ajustes em uma interface rápida, limpa e somente lei
 
 ## Sobre
 
-O Crymora é um aplicativo desktop para Windows que reúne, em um só lugar, o que você precisa saber antes e durante uma partida de Valorant: os dois times no pré-jogo, seus amigos online, o perfil completo de qualquer Riot ID e ajustes de aparência e comportamento.
+O Crymora é um aplicativo desktop para Windows que reúne, em um só lugar, o que você precisa saber antes e durante uma partida de Valorant: seu time, seus amigos online, o perfil completo de qualquer Riot ID e ajustes de aparência e comportamento.
 
 Ele conversa **apenas** com o Riot Client instalado na sua máquina e com serviços públicos da Riot. Não existe backend próprio, telemetria, conta na nuvem ou coleta de dados. Tudo fica no seu computador.
 
-> **Status:** release pública atual (`v0.1.2`). A interface e o backend são estáveis para uso diário, e o projeto continua em evolução.
+> **Status:** release pública atual (`v0.2.0`). A interface e o backend são estáveis para uso diário, e o projeto continua em evolução.
 
 > [!WARNING]
 > **Aviso da Riot Games — leia antes de usar.**  
 > O Crymora não é afiliado, endossado ou aprovado pela Riot Games. Ele utiliza APIs locais não oficiais do Riot Client, em modo somente leitura. A Riot não mantém uma lista pública de aplicativos seguros e não garante aplicativos de terceiros.  
-> **Esta versão mostra os inimigos já no pré-jogo, com rank e nível.** A Riot classifica “scouting” — consultar estatísticas de adversários antes da partida — como uso **não aprovado** e afirma que aplicativos não autorizados que obtêm informações ocultas do cliente podem resultar em banimento. **Use por sua conta e risco e não compartilhe com quem não aceitou esse risco.**  
+> **A partir da 0.2.0 o app não revela o time inimigo no pré-jogo.** Versões anteriores consultavam o endpoint de `loadouts` e liam o `ShooterGame.log` para descobrir os adversários antes da partida — a Riot classifica isso como *scouting*, uso **não aprovado** e sujeito a banimento. Esse fluxo foi removido: os inimigos aparecem quando a partida começa, exatamente como no jogo.  
 > O Crymora **não é um cheat**: não lê a memória do jogo, não injeta código, não cria overlay, não automatiza entrada e não altera arquivos do jogo.
 
 ## Recursos
@@ -45,11 +45,11 @@ Ele conversa **apenas** com o Riot Client instalado na sua máquina e com servi�
 
 ### Partida
 
-- **Pré-jogo com os dois times visíveis**, incluindo nick, rank e nível dos inimigos.
+- **Pré-jogo só com o seu time** — os inimigos aparecem quando a partida começa.
 - Roster completo durante a partida, com aliados e adversários.
 - Mapa, modo, placar ao vivo e indicação de party.
 - **Grupos por cor:** mesma cor = mesmo grupo, com o tamanho no card e os nomes no tooltip. O próprio grupo vem da API de party; amigos no lobby/partida vêm da presença. Inimigos desconhecidos não são marcados.
-- Espera inteligente pelos elos: a tela só monta o roster quando os ranks estão confirmados (ou libera em até 5 s, com o que estiver disponível).
+- Espera inteligente pelos elos: a tela só monta o roster quando os ranks estão confirmados (ou libera em até 3 s, com o que estiver disponível).
 
 ### Amigos
 
@@ -87,16 +87,18 @@ O Crymora foi desenhado para ser um **leitor passivo** do ecossistema local do V
 
 | Garantia | Como é aplicada |
 | --- | --- |
-| Somente leitura | Apenas APIs locais do Riot Client (incluindo `loadouts`) e leitura do `ShooterGame.log` |
+| Somente leitura | Apenas APIs locais do Riot Client (glz/pd, amigos, presença) — sem `loadouts` e sem leitura do `ShooterGame.log` atrás de adversários |
 | Sem memória do jogo | Nenhum acesso a `ReadProcessMemory` ou similares |
 | Sem injeção ou hooks | Nenhuma DLL, thread remota ou interceptação |
 | Sem overlay | A janela é um app desktop comum, fora do jogo |
 | Sem automação | Nenhum input sintético ou macro |
 | Sem alteração do jogo | Nenhum arquivo do Valorant é modificado |
 | Sem telemetria | Nenhum servidor próprio, analytics ou rastreamento |
-| Dados locais | Configurações e logs ficam em `%APPDATA%\crymora` |
+| Dados locais | Configurações e logs ficam em `%APPDATA%\crymora`; PUUIDs são redigidos no log |
+| Ritmo de tráfego | Toda requisição passa por pacer com jitter e teto por minuto (`riot/limits.rs`) |
+| Modo privado | Opção que impede a gravação dos caches de elo e amigos em disco |
 | Links externos | Apenas `tracker.gg` e `twitch.tv` (HTTPS), validados no backend |
-| Superfície mínima | CSP restritiva, sem `opener` para a página e whitelist de settings |
+| Superfície mínima | CSP restritiva com `freezePrototype`, sem `opener` para a página e whitelist de settings |
 
 Detalhes completos em [docs/PRIVACY.md](docs/PRIVACY.md) e [SECURITY.md](SECURITY.md).
 
@@ -112,16 +114,16 @@ Detalhes completos em [docs/PRIVACY.md](docs/PRIVACY.md) e [SECURITY.md](SECURIT
 
 1. Baixe o instalador mais recente em [**Releases**](https://github.com/nvd7/crymora/releases/latest):
 
-   [**Baixar o instalador**](https://github.com/nvd7/crymora/releases/latest) · 3,24 MiB
+   [**Baixar o instalador**](https://github.com/nvd7/crymora/releases/latest) · ~3,3 MiB
 
    ```text
-   Crymora_0.1.2_x64-setup.exe
+   Crymora_0.2.0_x64-setup.exe
    ```
 
 2. Confira o SHA-256 publicado em [`builds/final/SHA256SUMS.txt`](builds/final/SHA256SUMS.txt):
 
    ```powershell
-   Get-FileHash .\Crymora_0.1.2_x64-setup.exe -Algorithm SHA256
+   Get-FileHash .\Crymora_0.2.0_x64-setup.exe -Algorithm SHA256
    ```
 
 3. Execute o instalador. Ele instala **somente para o usuário atual**, em `%LOCALAPPDATA%\Crymora`, sem pedir administrador.
@@ -159,9 +161,9 @@ Para desinstalar: **Configurações → Aplicativos → Crymora → Desinstalar*
 ```
 
 1. O backend encontra o Riot Client pelo lockfile local e usa o token da sessão para consultar as APIs do próprio Riot.
-2. Um poller atualiza presenças, partida e elos em intervalos curtos; ao recuperar o foco, a UI pede uma atualização imediata.
-3. No pré-jogo, o payload do Riot entrega apenas o time aliado. O Crymora consulta o endpoint local de `loadouts`, que devolve o `Subject` dos 10 jogadores, e usa o `ShooterGame.log` como reserva. Cada puuid é enriquecido com nick e rank via PD.
-4. A UI recebe um roster normalizado e renderiza os dois times, sem acessar nada diretamente.
+2. Um poller atualiza presenças, partida e elos em intervalos curtos (com jitter); ao recuperar o foco, a UI pede uma atualização imediata.
+3. No pré-jogo, o payload do Riot entrega apenas o time aliado — e é só isso que o Crymora mostra. Não há consulta a `loadouts` nem varredura do `ShooterGame.log` atrás de adversários: revelar inimigo antes da partida é *scouting*, uso não aprovado pela Riot.
+4. A UI recebe um roster normalizado e renderiza os times disponíveis, sem acessar nada diretamente.
 
 Mais detalhes em [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
@@ -244,19 +246,18 @@ crymora/
 | Fonte | Uso | Acesso |
 | --- | --- | --- |
 | Lockfile do Riot Client | Porta e token da sessão local | Leitura local |
-| APIs locais `glz` / `pd` | Partida, roster, elos, nomes e presenças | Leitura autenticada com o token local |
-| API local `pregame/.../loadouts` | `Subject` dos 10 jogadores no pré-jogo | Leitura autenticada com o token local |
-| `ShooterGame.log` | Reserva dos puuids inimigos no pré-jogo | Leitura local |
-| `valorant-api.com` | Ícones de ranks, agentes e mapas | HTTPS público |
+| APIs locais `glz` / `pd` | Partida, roster aliado, elos, nomes e presenças | Leitura autenticada com o token local |
+| `valorant-api.com` | Ícones de ranks, agentes, mapas e a versão do cliente | HTTPS público |
 | `tracker.gg` / `twitch.tv` | Perfis e transmissões externas | Apenas links abertos no navegador |
 
 ## Roadmap
 
 - [x] Home, Partida, Amigos, Tracker e Ajustes.
-- [x] Pré-jogo com os dois times, ranks e níveis.
+- [x] Roster aliado no pré-jogo, ranks e níveis.
 - [x] Atualização imediata ao recuperar o foco.
 - [x] Troca de conta sem reiniciar.
-- [x] Inimigos do pré-jogo via `loadouts`, com o log como reserva.
+- [x] Ritmo de requisições com jitter e teto por minuto.
+- [x] Remoção do scouting de pré-jogo (`loadouts` e `ShooterGame.log`).
 - [ ] Histórico das últimas partidas no Tracker.
 - [ ] Mais idiomas além de português e inglês.
 - [ ] Assinatura de código do instalador.
@@ -293,9 +294,9 @@ Não. O Crymora não tem backend próprio nem telemetria. As únicas conexões s
 </details>
 
 <details>
-<summary><strong>Por que os inimigos aparecem no pré-jogo?</strong></summary>
+<summary><strong>Por que os inimigos não aparecem no pré-jogo?</strong></summary>
 
-Porque o app consulta o endpoint local de `loadouts` do pré-jogo, que devolve o `Subject` dos 10 jogadores, e usa o `ShooterGame.log` como reserva. Isso é o que a Riot chama de “scouting” e **não é um uso aprovado**. Leia o aviso no topo deste README e use por sua conta e risco.
+Porque revelar o time adversário antes da partida é o que a Riot chama de *scouting* — uso não aprovado. Até a 0.1.2 o app consultava o endpoint local de `loadouts` e lia o `ShooterGame.log` para descobrir esses jogadores. A partir da 0.2.0 esse fluxo foi removido: o pré-jogo mostra só o seu time e os inimigos entram no roster quando a partida começa, como no jogo.
 
 </details>
 

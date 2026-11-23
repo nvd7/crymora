@@ -12,6 +12,52 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 - Assinatura de código do instalador.
 - Testes de integração com o Riot Client em CI.
 
+## [0.2.0] - 2026-11-23
+
+### Removido — scouting no pré-jogo
+
+- **Inimigos não aparecem mais antes da partida.** O app consultava
+  `/pregame/v1/matches/{id}/loadouts` e varria o `ShooterGame.log` atrás dos
+  PUUIDs adversários. A Riot classifica revelar o time inimigo no pré-jogo
+  como *scouting* — uso não aprovado, sujeito a banimento. É a explicação
+  mais provável para contas suspensas usando apps deste tipo.
+- O roster de pré-jogo agora traz **apenas o time aliado**, direto do payload
+  do glz. A UI mostra um aviso no lugar da seção de inimigos; eles aparecem
+  quando a partida começa, como no jogo.
+- Removida a sonda de `tracker.gg` por jogador (transporte `tracker_proxy` e
+  a extração de canal da Twitch). Era scraping em massa de perfis de
+  terceiros, sem valor de jogo.
+
+### Adicionado
+
+- `riot/limits.rs`: todo request passa por um pacer (intervalo mínimo +
+  jitter) e por um teto por minuto — 45 ms/240 rpm na API local, 160 ms/60 rpm
+  no glz/pd. Fim das rajadas de 10 consultas de MMR em paralelo.
+- Orçamento de MMR por tick (2 jogadores) no pré-jogo, na partida e nos
+  amigos: o resto resolve nos ticks seguintes, com cache de 10 min.
+- Modo privado nos Ajustes: com ele ligado, caches de elo e amigos não são
+  gravados em disco.
+- Redação de PUUIDs no `debug.log` — fica só o prefixo de 8 caracteres.
+- `freezePrototype` no webview e CSP mais fechada (`frame-src`,
+  `frame-ancestors`, `worker-src` em `none`).
+- Intervalo do poll com jitter: 2,6 s no menu e 1,5 s em partida, ±0,7 s.
+
+### Alterado
+
+- **Layout novo**: sidebar rotulada de 232 px no lugar da rail de ícones,
+  início em bento, times lado a lado na aba Partida, cantos retos, bordas de
+  1 px e rótulos em monoespaçado.
+- `X-Riot-ClientPlatform` passa a mandar o build real do Windows (lido do
+  registro) em vez de `10.0.19042` fixo — valor fixo é fingerprint.
+- `--disable-features=msSmartScreenProtection` removido dos argumentos do
+  webview.
+- Permissão `core:window:allow-destroy` removida das capabilities.
+- `429` não é mais repetido em loop: respeita `Retry-After` e devolve erro.
+
+### Corrigido
+
+- Respostas de erro não despejam o corpo inteiro no log (140 caracteres).
+
 ## [0.1.2] - 2026-11-01
 
 ### Adicionado

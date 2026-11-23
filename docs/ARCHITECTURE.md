@@ -39,7 +39,8 @@ flowchart LR
 | `riot/lockfile.rs` | Descoberta do Riot Client e leitura do lockfile local. |
 | `riot/region.rs` | Detecção de região, shard e host a partir do lockfile/ambiente. |
 | `riot/remote.rs` | Cliente HTTP para glz/pd, nomes, MMR e normalização de ranks. |
-| `riot/state.rs` | Poller, cache, montagem do roster, presenças, loadouts e fallback dos inimigos. |
+| `riot/limits.rs` | Pacer (intervalo + jitter) e teto de requisições por minuto. |
+| `riot/state.rs` | Poller, cache, montagem do roster aliado e presenças. |
 
 ### Comandos IPC
 
@@ -51,7 +52,6 @@ O frontend só acessa o backend por comandos explícitos:
 - `settings_get`, `settings_set`
 - `quit_app`, `open_main_window`
 - `js_diag` (diagnóstico)
-- `tracker_proxy` (stub; não usado nesta versão)
 
 ## Fluxo de dados
 
@@ -73,44 +73,39 @@ O `Poller` mantém um cache em memória e executa `tick()` em loop:
 - **Cache de MMR:** TTL de 10 minutos (`MMR_TTL_SECS`).
 - **Foco:** a UI chama `refresh_now` ao receber `focus` ou `visibilitychange`, forçando um tick imediato.
 
-Cada tick coleta presenças, fase da partida, roster e dados de elo. As consultas de MMR são feitas em paralelo para reduzir a latência.
+Cada tick coleta presenças, fase da partida, roster e dados de elo. As consultas de MMR passam por um orçamento de 2 jogadores por tick, cada uma espaçada pelo `riot/limits.rs`; o resto resolve nos ticks seguintes (cache de 10 min).
 
-### 3. Pré-jogo
+### 3. Pré-jogo — só o time aliado
 
-O payload de `Pregame_GetMatch` entrega apenas o time aliado: `Teams` contém um único time e `EnemyTeam` vem nulo. Para montar os 10, o backend:
+O payload de `Pregame_GetMatch` entrega apenas o time aliado: `Teams` contém um único time e `EnemyTeam` vem nulo. O backend descobre o `TeamID` do próprio puuid e mantém **apenas** esse time no roster. Nada mais é consultado.
 
-1. Lê `EnemyTeamSize` (normalmente 5).
-2. Consulta `GET /pregame/v1/matches/{id}/loadouts`, que devolve o `Subject` dos 10 jogadores (o cliente usa o endpoint para pré-carregar skins).
-3. Coleta os `Subject` que não são o jogador local nem aliados, remove duplicados e limita ao tamanho do time inimigo.
-4. Se ainda faltar alguém, usa o `ShooterGame.log` como reserva: lê os últimos 2 MB, ancora na **primeira** linha `Pregame_GetMatch` da partida atual, para na próxima partida e coleta os puuids de `Subject had empty display name. <uuid>`.
-5. Enriquece cada puuid com nick e rank via PD.
-
-A âncora na primeira consulta é importante: o app consulta o `Pregame_GetMatch` a cada tick e os inimigos só aparecem no log no fim do agent-select. Ancorar na última consulta faria o roster perder os inimigos no tick seguinte.
+> **Por que não há busca de inimigos.** Até a 0.1.2 o app consultava
+> `GET /pregame/v1/matches/{id}/loadouts` (que devolve o `Subject` dos 10) e
+> varria o `ShooterGame.log` atrás de `Subject had empty display name. <uuid>`
+> para completar o time adversário. A Riot classifica revelar o time inimigo
+> antes da partida como *scouting* — uso não aprovado, sujeito a banimento.
+> Os dois caminhos foram removidos na 0.2.0: `enemies_from_loadouts`,
+> `enemies_from_log` e `parse_enemy_puuids` não existem mais, e o snapshot
+> carrega `enemiesHidden: true` durante o pré-jogo para a UI explicar a
+> ausência em vez de mostrar uma seção vazia.
 
 ```mermaid
 sequenceDiagram
     participant UI
     participant Poller
     participant GLZ as Riot glz
-    participant Log as ShooterGame.log
     participant PD as Riot pd
     UI->>Poller: refresh_now (foco)
     Poller->>GLZ: GET pregame match
-    GLZ-->>Poller: aliados + EnemyTeamSize
-    Poller->>GLZ: GET pregame loadouts
-    GLZ-->>Poller: Subject dos 10 jogadores
-    opt inimigos ainda faltando
-        Poller->>Log: tail 2 MB (reserva)
-        Log-->>Poller: puuids inimigos
-    end
-    Poller->>PD: nomes + MMR (paralelo)
+    GLZ-->>Poller: time aliado (EnemyTeam ignorado)
+    Poller->>PD: nomes + MMR (2 por tick, com pacer)
     PD-->>Poller: nick, rank, pico
-    Poller-->>UI: roster 10/10
+    Poller-->>UI: roster 5/5 + enemiesHidden
 ```
 
 ### 4. Espera pelos ranks
 
-O roster do pré-jogo só é publicado quando `ranks_ready` confirma que todos os jogadores têm elo resolvido — “unranked” confirmado também conta. Se alguma consulta falhar, `pregame_hold` libera a tela após 5 s (`RANK_WAIT_SECS`) com o que estiver disponível.
+O roster do pré-jogo só é publicado quando `ranks_ready` confirma que todos os jogadores visíveis têm elo resolvido — “unranked” confirmado também conta. Se alguma consulta falhar, `pregame_hold` libera a tela após 3 s (`RANK_WAIT_SECS`) com o que estiver disponível.
 
 Isso evita a UI “piscar” com ranks incompletos e mantém a promessa de “deu Alt+Tab, já está tudo lá”.
 
@@ -141,16 +136,18 @@ A UI não acessa rede diretamente, exceto `valorant-api.com` para ícones e mapa
 
 ### Controles técnicos
 
-- CSP restritiva em `tauri.conf.json` (`default-src 'self'`, `object-src 'none'`, `form-action 'none'`).
+- CSP restritiva em `tauri.conf.json` (`default-src 'self'`, `object-src 'none'`, `form-action 'none'`, `frame-src`/`frame-ancestors`/`worker-src` em `none`).
+- `freezePrototype` habilitado no webview.
 - `connect-src` limitado a IPC e `https://valorant-api.com`.
 - `img-src` limitado a `self`, `data:` e `https://media.valorant-api.com`.
 - Links externos allowlisted no Rust: apenas `tracker.gg` e `twitch.tv` em HTTPS.
 - Settings com whitelist de chaves e valores booleanos; o restante é descartado.
 - Nenhuma permissão de opener para a página.
+- Todo request passa por `riot/limits.rs` (pacer + jitter + teto/minuto) e o `debug.log` redige PUUIDs.
 
 ### Riscos conhecidos
 
-- **Scouting:** exibir inimigos no pré-jogo é classificado pela Riot como uso não aprovado. O risco é documentado no README e no LEIA-ME do instalador.
+- **Scouting (removido):** até a 0.1.2 o app revelava o time inimigo no pré-jogo, o que a Riot classifica como uso não aprovado. O fluxo foi removido na 0.2.0 — não há mais consulta a `loadouts` nem leitura do `ShooterGame.log` atrás de adversários.
 - **Instalador não assinado:** sujeito ao SmartScreen até haver certificado de code signing.
 - **APIs não oficiais:** endpoints locais do Riot Client podem mudar sem aviso e quebrar funcionalidades.
 
@@ -161,10 +158,10 @@ Os testes unitários ficam em `src-tauri/src` e cobrem:
 - parsing de região;
 - parsing de MMR e pico de carreira;
 - fallback de puuid via `PlayerIdentity.Subject`;
-- parsing dos `Subject` dos loadouts no pré-jogo;
-- parsing dos puuids inimigos no log e âncora na primeira consulta da partida;
 - `ranks_ready` e timeout de `pregame_hold`;
-- allowlist de links externos.
+- redação de PUUIDs no `debug.log`;
+- allowlist de links externos;
+- faixa do jitter do pacer.
 
 ```powershell
 cd src-tauri

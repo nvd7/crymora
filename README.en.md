@@ -23,16 +23,16 @@ Matches, friends, tracker and settings in a fast, clean, read-only desktop app.
 
 ## About
 
-Crymora is a Windows desktop app that brings together what you need to know before and during a Valorant match: both teams in pre-game, your online friends, a complete profile for any Riot ID, and appearance and behavior settings.
+Crymora is a Windows desktop app that brings together what you need to know before and during a Valorant match: your team, your online friends, a complete profile for any Riot ID, and appearance and behavior settings.
 
 It talks **only** to the Riot Client installed on your machine and to public Riot services. There is no custom backend, telemetry, cloud account or data collection. Everything stays on your computer.
 
-> **Status:** current public release (`v0.1.2`). The UI and backend are stable for daily use, and the project continues to evolve.
+> **Status:** current public release (`v0.2.0`). The UI and backend are stable for daily use, and the project continues to evolve.
 
 > [!WARNING]
 > **Riot Games notice — read before using.**  
 > Crymora is not affiliated with, endorsed by or approved by Riot Games. It uses unofficial local Riot Client APIs in read-only mode. Riot does not maintain a public list of safe apps and does not guarantee third-party apps.  
-> **This version shows enemies during pre-game, including rank and level.** Riot classifies “scouting” — looking up opponent statistics before a match — as **unapproved use** and states that unauthorized apps that obtain hidden client information may result in a ban. **Use at your own risk and do not share it with anyone who has not accepted that risk.**  
+> **As of 0.2.0 the app no longer reveals the enemy team in pre-game.** Earlier versions queried the `loadouts` endpoint and read `ShooterGame.log` to discover opponents before the match — Riot classifies that as *scouting*, **unapproved use** subject to a ban. That flow is gone: enemies appear once the match starts, exactly like in-game.  
 > Crymora **is not a cheat**: it does not read game memory, inject code, create overlays, automate input or modify game files.
 
 ## Features
@@ -45,7 +45,7 @@ It talks **only** to the Riot Client installed on your machine and to public Rio
 
 ### Match
 
-- **Pre-game with both teams visible**, including enemy nicknames, ranks and levels.
+- **Pre-game with your team only** — enemies appear once the match starts.
 - Full roster during the match, with allies and opponents.
 - Map, mode, live score and party indicators.
 - **Group colors:** same color = same group, with the group size on the card and names in the tooltip. Your own party comes from the party API; friends in the lobby/match come from presence. Unknown enemies are not marked.
@@ -87,14 +87,16 @@ Crymora is designed to be a **passive reader** of the local Valorant ecosystem.
 
 | Guarantee | How it is enforced |
 | --- | --- |
-| Read-only | Local Riot Client APIs (including pre-game `loadouts`) and `ShooterGame.log` reading only |
+| Read-only | Local Riot Client APIs (glz/pd, friends, presence) — no `loadouts`, no `ShooterGame.log` scanning for opponents |
 | No game memory | No `ReadProcessMemory` or similar |
 | No injection or hooks | No DLLs, remote threads or interception |
 | No overlay | A regular desktop window, outside the game |
 | No automation | No synthetic input or macros |
 | No game modification | No Valorant file is changed |
 | No telemetry | No custom server, analytics or tracking |
-| Local data | Settings and logs live in `%APPDATA%\crymora` |
+| Local data | Settings and logs live in `%APPDATA%\crymora`; PUUIDs are redacted in the log |
+| Traffic pacing | Every request goes through a pacer with jitter and a per-minute cap (`riot/limits.rs`) |
+| Private mode | Optional setting that keeps rank and friend caches off disk |
 | External links | Only `tracker.gg` and `twitch.tv` (HTTPS), validated in the backend |
 | Minimal surface | Strict CSP, no opener for the page and a settings allowlist |
 
@@ -115,13 +117,13 @@ Full details in [docs/PRIVACY.md](docs/PRIVACY.md) and [SECURITY.md](SECURITY.md
    [**Download the installer**](https://github.com/nvd7/crymora/releases/latest) · 3.24 MiB
 
    ```text
-   Crymora_0.1.2_x64-setup.exe
+   Crymora_0.2.0_x64-setup.exe
    ```
 
 2. Check the SHA-256 published in [`builds/final/SHA256SUMS.txt`](builds/final/SHA256SUMS.txt):
 
    ```powershell
-   Get-FileHash .\Crymora_0.1.2_x64-setup.exe -Algorithm SHA256
+   Get-FileHash .\Crymora_0.2.0_x64-setup.exe -Algorithm SHA256
    ```
 
 3. Run the installer. It installs **for the current user only**, in `%LOCALAPPDATA%\Crymora`, without asking for administrator rights.
@@ -139,7 +141,6 @@ To uninstall: **Settings → Apps → Crymora → Uninstall**, or run `%LOCALAPP
 │ Riot Client / Valorant       │
 │  • local lockfile            │
 │  • glz / pd APIs             │
-│  • ShooterGame.log           │
 └──────────────┬───────────────┘
                │ read-only
                ▼
@@ -159,9 +160,9 @@ To uninstall: **Settings → Apps → Crymora → Uninstall**, or run `%LOCALAPP
 ```
 
 1. The backend finds the Riot Client through the local lockfile and uses the session token to query Riot's own APIs.
-2. A poller refreshes presence, match and ranks at short intervals; when the window regains focus, the UI requests an immediate refresh.
-3. In pre-game, the Riot payload only contains the allied team. Crymora queries the local `loadouts` endpoint, which returns the `Subject` of all 10 players, and uses `ShooterGame.log` as a fallback. Each puuid is enriched with nickname and rank via PD.
-4. The UI receives a normalized roster and renders both teams without accessing anything directly.
+2. A poller refreshes presence, match and ranks at short intervals (with jitter); when the window regains focus, the UI requests an immediate refresh.
+3. In pre-game, the Riot payload only contains the allied team — and that is all Crymora shows. There is no `loadouts` query and no `ShooterGame.log` scan for opponents: revealing enemies before the match is *scouting*, which Riot does not approve.
+4. The UI receives a normalized roster and renders the available teams without accessing anything directly.
 
 More details in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
@@ -204,7 +205,7 @@ cargo tauri build
 Expected output:
 
 ```text
-src-tauri\target\release\bundle\nsis\Crymora_0.1.2_x64-setup.exe
+src-tauri\target\release\bundle\nsis\Crymora_0.2.0_x64-setup.exe
 ```
 
 ## Project structure
@@ -244,19 +245,18 @@ crymora/
 | Source | Purpose | Access |
 | --- | --- | --- |
 | Riot Client lockfile | Local session port and token | Local read |
-| Local `glz` / `pd` APIs | Match, roster, ranks, names and presence | Authenticated read with the local token |
-| Local `pregame/.../loadouts` API | `Subject` of all 10 players in pre-game | Authenticated read with the local token |
-| `ShooterGame.log` | Fallback for enemy puuids in pre-game | Local read |
-| `valorant-api.com` | Rank, agent and map icons | Public HTTPS |
+| Local `glz` / `pd` APIs | Match, allied roster, ranks, names and presence | Authenticated read with the local token |
+| `valorant-api.com` | Rank, agent and map icons, plus the client version | Public HTTPS |
 | `tracker.gg` / `twitch.tv` | External profiles and streams | Links opened in the browser only |
 
 ## Roadmap
 
 - [x] Home, Match, Friends, Tracker and Settings.
-- [x] Pre-game with both teams, ranks and levels.
+- [x] Allied roster in pre-game, ranks and levels.
 - [x] Immediate refresh when the app regains focus.
 - [x] Account switching without restarting.
-- [x] Pre-game enemies via `loadouts`, with the game log as a fallback.
+- [x] Request pacing with jitter and a per-minute cap.
+- [x] Pre-game scouting removed (`loadouts` and `ShooterGame.log`).
 - [ ] Recent match history in the Tracker.
 - [ ] More languages beyond Portuguese and English.
 - [ ] Code signing for the installer.
@@ -293,9 +293,9 @@ No. Crymora has no custom backend and no telemetry. The only connections are to 
 </details>
 
 <details>
-<summary><strong>Why do enemies appear in pre-game?</strong></summary>
+<summary><strong>Why don't enemies show up in pre-game?</strong></summary>
 
-Because the app queries the local pre-game `loadouts` endpoint, which returns the `Subject` of all 10 players, and uses `ShooterGame.log` as a fallback. This is what Riot calls “scouting” and **it is not approved use**. Read the warning at the top of this README and use it at your own risk.
+Because revealing the opposing team before the match is what Riot calls *scouting* — unapproved use. Up to 0.1.2 the app queried the local `loadouts` endpoint and read `ShooterGame.log` to find those players. As of 0.2.0 that flow is gone: pre-game shows only your team, and enemies join the roster once the match starts, like in-game.
 
 </details>
 

@@ -55,12 +55,14 @@ O Crymora é um leitor passivo:
 
 - Não lê memória do jogo, não injeta código, não cria hooks ou overlay e não automatiza entrada.
 - Não altera arquivos do Valorant.
+- Não consulta `loadouts` nem lê o `ShooterGame.log` atrás de adversários: o pré-jogo mostra apenas o time aliado.
 - Não envia dados para servidores próprios.
 - O token local do Riot Client é usado apenas em memória, para chamadas ao próprio Riot, e não é gravado em log nem exposto à UI.
+- Todo request passa por pacer com jitter e teto por minuto (`riot/limits.rs`); o `debug.log` redige PUUIDs.
 - Links externos são validados no backend e limitados a `tracker.gg` e `twitch.tv` em HTTPS.
-- A UI roda com CSP restritiva e sem permissão de opener.
+- A UI roda com CSP restritiva, `freezePrototype` e sem permissão de opener.
 - Configurações aceitam apenas chaves booleanas conhecidas.
 
 ## Instalador não assinado
 
-O instalador da versão `0.1.2` não possui assinatura de código. O SHA-256 de cada binário é publicado em `builds/final/SHA256SUMS.txt` e na release correspondente. Sempre confira o hash antes de executar.
+O instalador da versão `0.2.0` não possui assinatura de código. O SHA-256 de cada binário é publicado em `builds/final/SHA256SUMS.txt` e na release correspondente. Sempre confira o hash antes de executar.
